@@ -1,0 +1,827 @@
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+	http2.ConfigureTransport(tr)
+	proxy.Tr = tr
+	
+	// Create HTTP/3 RoundTripper (QUIC)
+	h3tr := &http3.RoundTripper{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	// Listen for control commands from Hub
+	go func() {
+		for cmd := range hub.ControlCommands {
+			switch cmd.Type {
+			case traffic.ControlSignal_INTERCEPT_ON:
+				interceptMu.Lock()
+				interceptEnabled = true
+				interceptMu.Unlock()
+				log.Println("[Proxy] Intercept ENABLED")
+				hub.Broadcast <- WSMessage{Type: "intercept_state", Data: map[string]interface{}{"enabled": true}}
+			case traffic.ControlSignal_INTERCEPT_OFF:
+				interceptMu.Lock()
+				interceptEnabled = false
+				interceptMu.Unlock()
+				// Do NOT release pending requests - they stay in the list
+				log.Println("[Proxy] Intercept DISABLED (pending requests kept)")
+				hub.Broadcast <- WSMessage{Type: "intercept_state", Data: map[string]interface{}{"enabled": false}}
+			case traffic.ControlSignal_RELEASE_REQUEST:
+				pendingMu.Lock()
+				if ch, ok := pendingRequests[cmd.TargetUid]; ok {
+					ch <- InterceptSignal{Action: "forward", Payload: cmd.Payload}
+					delete(pendingRequests, cmd.TargetUid)
+					log.Printf("[Proxy] Released intercept: %s", cmd.TargetUid)
+					hub.Broadcast <- WSMessage{Type: "intercept_removed", Data: cmd.TargetUid}
+				}
+				pendingMu.Unlock()
+			case traffic.ControlSignal_DROP_REQUEST:
+				pendingMu.Lock()
+				if ch, ok := pendingRequests[cmd.TargetUid]; ok {
+					ch <- InterceptSignal{Action: "drop"}
+					delete(pendingRequests, cmd.TargetUid)
+					log.Printf("[Proxy] Dropped intercept: %s", cmd.TargetUid)
+					DeleteIntercept(cmd.TargetUid)
+					hub.Broadcast <- WSMessage{Type: "intercept_removed", Data: cmd.TargetUid}
+				}
+				pendingMu.Unlock()
+			case traffic.ControlSignal_RELEASE_AND_INTERCEPT_RESPONSE:
+				pendingMu.Lock()
+				if ch, ok := pendingRequests[cmd.TargetUid]; ok {
+					// Mark this UID for response interception
+					interceptNextMu.Lock()
+					interceptResponseNext[cmd.TargetUid] = true
+					interceptNextMu.Unlock()
+
+					ch <- InterceptSignal{Action: "forward", Payload: cmd.Payload}
+					delete(pendingRequests, cmd.TargetUid)
+					log.Printf("[Proxy] Released request and armed response intercept for: %s", cmd.TargetUid)
+					hub.Broadcast <- WSMessage{Type: "intercept_removed", Data: cmd.TargetUid}
+				}
+				pendingMu.Unlock()
+			}
+		}
+	}()
+
+	// CA Handling (Self-signed)
+	goproxy.OkConnect = &goproxy.ConnectAction{Action: goproxy.ConnectAccept, TLSConfig: goproxy.TLSConfigFromCA(&goproxy.GoproxyCa)}
+	proxy.OnRequest().HandleConnect(goproxy.AlwaysMitm)
+
+	proxy.OnRequest().DoFunc(func(r *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
+		uid := fmt.Sprintf("%p_%d", r, time.Now().UnixNano())
+
+		// Attempt HTTP/3 if enabled
+		forceH3 := GetSetting("force_http3_upstream", "false") == "true"
+		if r.URL.Scheme == "https" && forceH3 {
+			ctx.RoundTripper = h3tr
+		}
+
+		// Capture Request Body
+		var body []byte
+		if r.Body != nil {
+			body, _ = io.ReadAll(r.Body)
+			r.Body = io.NopCloser(bytes.NewBuffer(body))
+		}
+
+		event := &traffic.TrafficEvent{
+			Uid:         uid,
+			Method:      r.Method,
+			Host:        r.Host,
+			Path:        r.URL.Path,
+			Query:       r.URL.RawQuery,
+			Tls:         r.URL.Scheme == "https" || r.TLS != nil,
+			Protocol:    r.Proto,
+			Time:        time.Now().Format("15:04:05"),
+			StartTime:   time.Now().Format(time.RFC3339),
+			RequestRaw:  dumpRequest(r, body),
+			SourceIp:    r.RemoteAddr,
+			RequestSize: 0,
+			Source:      "Browser", // Default source is Browser
+			Extension:   path.Ext(r.URL.Path),
+		}
+
+		// EXTRACT PORTS & CLEAN IPs
+		if host, port, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+			event.SourceIp = host
+			fmt.Sscanf(port, "%d", &event.Lport)
+		}
+		if _, port, err := net.SplitHostPort(r.Host); err == nil {
+			fmt.Sscanf(port, "%d", &event.Rport)
+		} else {
+			if r.URL.Scheme == "https" {
+				event.Rport = 443
+			} else {
+				event.Rport = 80
+			}
+		}
+
+		// INITIAL SIZE CALCULATIONS (Request)
+		reqHeaderStr := ""
+		for k, vv := range r.Header {
+			for _, v := range vv {
+				reqHeaderStr += fmt.Sprintf("%s: %s\n", k, v)
+			}
+		}
+		// Add the Request-Line size approx (Method + Path + Proto)
+		reqLine := fmt.Sprintf("%s %s %s\n", r.Method, r.URL.RequestURI(), r.Proto)
+		event.ReqHeadersSize = int64(len(reqHeaderStr) + len(reqLine))
+		event.UrlLength = int64(len(r.URL.String()))
+		event.PayloadRequestSize = int64(len(body))
+		event.RequestSize = event.ReqHeadersSize + event.PayloadRequestSize
+		event.HeadersSize = event.ReqHeadersSize // Current sum
+		event.Length = event.UrlLength           // User: Length is URL length
+
+		if r.Header.Get("Cookie") != "" {
+			event.HasCookie = true
+		}
+
+		// Ensure ID is assigned early for the frontend list
+		idMu.Lock()
+		globalID++
+		idMu.Unlock()
+		event.Id = uint32(globalID)
+
+		ctx.UserData = event
+
+		// APPLY RULES (Match/Replace)
+		var drop bool
+		body, drop = applyRequestRules(r, body, "proxy")
+		if drop {
+			return r, goproxy.NewResponse(r, goproxy.ContentTypeText, http.StatusForbidden, "Request dropped by Meowl Proxy Rule")
+		}
+		r.Body = io.NopCloser(bytes.NewBuffer(body))
+		event.RequestRaw = dumpRequest(r, body) // Update raw if rules modified it
+		event.PayloadRequestSize = int64(len(body))
+		event.RequestSize = event.ReqHeadersSize + event.PayloadRequestSize
+		event.Length = event.UrlLength
+
+		// SHOULD WE INTERCEPT?
+		interceptMu.RLock()
+		doIntercept := interceptEnabled && (requestBreakpoint || shouldIntercept(r, body, "intercept"))
+		interceptMu.RUnlock()
+
+		// SHOULD WE LOG THIS? (Scope check)
+		inScope := isInScope(r)
+
+		if doIntercept {
+			event.Source = "intercept"
+			// Save as Intercepted in DB
+			dbEvent := TrafficEventFromProto(event)
+			InsertIntercept(&dbEvent)
+
+			// Broadcast to frontend immediately
+			batch := &traffic.WSBatch{Events: []*traffic.TrafficEvent{event}}
+			if data, err := proto.Marshal(batch); err == nil {
+				hub.Broadcast <- WSMessage{Type: "new_traffic_bin", BinaryData: data}
+			}
+
+			// Block until forward/drop signal
+			signalChan := make(chan InterceptSignal)
+			pendingMu.Lock()
+			pendingRequests[uid] = signalChan
+			pendingMu.Unlock()
+
+			log.Printf("[Proxy] Intercepting request: %s %s", r.Method, r.URL.String())
+			signal := <-signalChan
+			if signal.Action == "drop" {
+				return r, goproxy.NewResponse(r, goproxy.ContentTypeText, http.StatusForbidden, "Request dropped by Meowl Interceptor")
+			}
+			// Apply edited payload if present
+			if signal.Payload != "" {
+				applyEditedRequest(r, signal.Payload)
+				event.RequestRaw = signal.Payload
+				// Re-calculate request size if edited
+				event.PayloadRequestSize = int64(len(signal.Payload) - int(event.ReqHeadersSize)) // Approximation
+				event.RequestSize = event.ReqHeadersSize + event.PayloadRequestSize
+
+				// PERSIST edited request immediately to intercepts table
+				UpdateInterceptRequest(event.Uid, event.RequestRaw, event.PayloadRequestSize, event.RequestSize)
+			}
+			log.Printf("[Proxy] Forwarding request: %s", uid)
+		} else if inScope {
+			// If not intercepted and IN SCOPE, show in list immediately
+			batch := &traffic.WSBatch{Events: []*traffic.TrafficEvent{event}}
+			if data, err := proto.Marshal(batch); err == nil {
+				hub.Broadcast <- WSMessage{Type: "new_traffic_bin", BinaryData: data}
+			}
+		} else {
+			// OUT OF SCOPE: Just let it pass without logging/broadcasting
+			// But wait, what if the user wants to see out of scope?
+			// Burp has a filter for this. For now, let's just skip broadcasting.
+			log.Printf("[Proxy] Out of scope, skipping log: %s", r.URL.String())
+		}
+
+		return r, nil
+	})
+
+	proxy.OnResponse().DoFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
+		if resp == nil {
+			return nil
+		}
+
+		event, ok := ctx.UserData.(*traffic.TrafficEvent)
+		if !ok {
+			return resp
+		}
+
+		// Update Event with Response
+		event.StatusCode = int32(resp.StatusCode)
+		fullMime := resp.Header.Get("Content-Type")
+		if idx := strings.Index(fullMime, ";"); idx != -1 {
+			event.MimeType = strings.TrimSpace(fullMime[:idx])
+		} else {
+			event.MimeType = fullMime
+		}
+
+		// CALC LATENCY (RTT)
+		if event.StartTime != "" {
+			if st, err := time.Parse(time.RFC3339, event.StartTime); err == nil {
+				event.Latency = int32(time.Since(st).Milliseconds())
+			}
+		}
+		event.EndTime = time.Now().Format(time.RFC3339)
+
+		if resp.Header.Get("Set-Cookie") != "" {
+			event.HasCookie = true
+			event.SetCookies = int32(len(resp.Header["Set-Cookie"]))
+		}
+
+		var body []byte
+		if resp.Body != nil {
+			body, _ = io.ReadAll(resp.Body)
+			// APPLY RULES (Match/Replace)
+			var drop bool
+			body, drop = applyResponseRules(resp, body, "proxy")
+			if drop {
+				return goproxy.NewResponse(resp.Request, goproxy.ContentTypeText, http.StatusForbidden, "Response dropped by Meowl Proxy Rule")
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(body))
+		}
+
+		// RESPONSE SIZES
+		resHeaderStr := ""
+		for k, vv := range resp.Header {
+			for _, v := range vv {
+				resHeaderStr += fmt.Sprintf("%s: %s\n", k, v)
+			}
+		}
+		// Add Status-Line size approx
+		resLine := fmt.Sprintf("%s %d %s\n", resp.Proto, resp.StatusCode, http.StatusText(resp.StatusCode))
+		event.ResHeadersSize = int64(len(resHeaderStr) + len(resLine))
+		event.HeadersSize = event.ReqHeadersSize + event.ResHeadersSize
+		event.PayloadResponseSize = int64(len(body))
+
+		event.Size = event.ResHeadersSize + event.PayloadResponseSize // Response Size
+		event.Length = event.UrlLength                                // Still URL length
+		event.Protocol = resp.Proto                                   // Update to server protocol
+		// Store total size in Proto 'size' or equivalent?
+		// Actually let's use 'size' for response total and 'request_size' for request total.
+		// And we'll use a new field or just keep it for now.
+		event.ResponseRaw = dumpResponse(resp, body)
+
+		// POPULATE SERVER IP
+		if resp.Request != nil {
+			host := resp.Request.Host
+			if h, _, err := net.SplitHostPort(host); err == nil {
+				host = h
+			}
+			event.ServerIp = getIPCached(host)
+		}
+
+		// EXTRACT PAGE TITLE
+		if strings.Contains(strings.ToLower(event.MimeType), "html") {
+			event.Title = extractTitle(body)
+		}
+
+		// Capture TLS Issuer more aggressively
+		if resp.Request != nil && resp.Request.TLS != nil && len(resp.Request.TLS.PeerCertificates) > 0 {
+			event.TlsIssuer = resp.Request.TLS.PeerCertificates[0].Subject.CommonName
+		} else if ctx.Req.TLS != nil && len(ctx.Req.TLS.PeerCertificates) > 0 {
+			event.TlsIssuer = ctx.Req.TLS.PeerCertificates[0].Subject.CommonName
+		} else if resp.TLS != nil && len(resp.TLS.PeerCertificates) > 0 {
+			event.TlsIssuer = resp.TLS.PeerCertificates[0].Subject.CommonName
+		}
+
+		// CHECK IF WE SHOULD INTERCEPT RESPONSE
+		interceptNextMu.Lock()
+		perRequestIntercept := interceptResponseNext[event.Uid]
+		delete(interceptResponseNext, event.Uid) // One-time use
+		interceptNextMu.Unlock()
+
+		interceptMu.RLock()
+		wasIntercepted := event.Source == "intercept"
+		doIntercept := interceptEnabled && (responseBreakpoint || perRequestIntercept || shouldInterceptResponse(resp, body, "intercept"))
+		interceptMu.RUnlock()
+
+		if doIntercept {
+			// If this wasn't already intercepted, mark it as intercept now
+			if !wasIntercepted {
+				event.Source = "intercept"
+				dbEvent := TrafficEventFromProto(event)
+				InsertIntercept(&dbEvent)
+			}
+
+			// Update the intercept record with response data
+			UpdateInterceptWithResponse(event.Uid, int(event.StatusCode), event.ResponseRaw, event.EndTime, int(event.Latency), event.TlsIssuer)
+
+			// Broadcast updated event to frontend
+			batch := &traffic.WSBatch{Events: []*traffic.TrafficEvent{event}}
+			if data, err := proto.Marshal(batch); err == nil {
+				hub.Broadcast <- WSMessage{Type: "new_traffic_bin", BinaryData: data}
+			}
+
+			// Block until forward/drop signal
+			signalChan := make(chan InterceptSignal)
+			pendingMu.Lock()
+			pendingRequests[event.Uid] = signalChan
+			pendingMu.Unlock()
+
+			log.Printf("[Proxy] Intercepting response: %s %s (status %d)", ctx.Req.Method, ctx.Req.URL.String(), resp.StatusCode)
+			signal := <-signalChan
+			if signal.Action == "drop" {
+				return goproxy.NewResponse(ctx.Req, goproxy.ContentTypeText, http.StatusForbidden, "Response dropped by Meowl Interceptor")
+			}
+			// Apply edited payload if present
+			if signal.Payload != "" {
+				applyEditedResponse(resp, signal.Payload)
+				body, _ = io.ReadAll(resp.Body)
+				resp.Body = io.NopCloser(bytes.NewBuffer(body))
+
+				// Update event with edited content
+				event.ResponseRaw = signal.Payload
+				event.StatusCode = int32(resp.StatusCode)
+				event.PayloadResponseSize = int64(len(body))
+				event.Size = event.ResHeadersSize + event.PayloadResponseSize
+			}
+			log.Printf("[Proxy] Forwarding response: %s", event.Uid)
+		}
+
+		// CHECK SCOPE before Saving History
+		if !isInScope(ctx.Req) {
+			return resp
+		}
+
+		// Move from Intercept to History or just Insert to History
+		dbEvent := TrafficEventFromProto(event)
+		// If it was intercepted, it's already in the intercepts table.
+		if !MoveInterceptToHistory(event.Uid, int(event.StatusCode), event.ResponseRaw, event.RequestRaw, event.EndTime, int(event.Latency), event.TlsIssuer) {
+			// Not in intercept table, so just insert normally
+			InsertRequest(&dbEvent)
+		}
+
+		// Broadcast update
+		batch := &traffic.WSBatch{Events: []*traffic.TrafficEvent{event}}
+		if data, err := proto.Marshal(batch); err == nil {
+			hub.Broadcast <- WSMessage{Type: "new_traffic_bin", BinaryData: data}
+		}
+
+		return resp
+	})
+
+	currentSrv = &http.Server{
+		Addr:    addr,
+		Handler: proxy,
+	}
+
+	go func() {
+		log.Printf("[Proxy] Listener starting on %s...", addr)
+		if err := currentSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Printf("[Proxy] FATAL ERROR on %s: %v", addr, err)
+		}
+	}()
+}
+
+// applyEditedRequest parses user-edited raw HTTP text and updates the live request
+func applyEditedRequest(r *http.Request, raw string) {
+	// Split header block and body
+	parts := strings.SplitN(raw, "\n\n", 2)
+	headerBlock := parts[0]
+	var newBody string
+	if len(parts) > 1 {
+		newBody = parts[1]
+	}
+
+	lines := strings.Split(headerBlock, "\n")
+	if len(lines) == 0 {
+		return
+	}
+
+	// Parse request line: METHOD URL PROTO
+	reqLine := strings.TrimSpace(lines[0])
+	reqParts := strings.SplitN(reqLine, " ", 3)
+	if len(reqParts) >= 2 {
+		r.Method = reqParts[0]
+		if parsedURL, err := url.Parse(reqParts[1]); err == nil {
+			r.URL = parsedURL
+			// Update Host header from URL
+			if parsedURL.Host != "" {
+				r.Host = parsedURL.Host
+			}
+		}
+	}
+
+	// Parse headers
+	r.Header = make(http.Header)
+	for _, line := range lines[1:] {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		colonIdx := strings.Index(line, ":")
+		if colonIdx > 0 {
+			key := strings.TrimSpace(line[:colonIdx])
+			val := strings.TrimSpace(line[colonIdx+1:])
+			r.Header.Add(key, val)
+			if strings.EqualFold(key, "Host") {
+				r.Host = val
+			}
+		}
+	}
+
+	// Apply body
+	bodyBytes := []byte(newBody)
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	r.ContentLength = int64(len(bodyBytes))
+
+	log.Printf("[Proxy] Applied edited request: %s %s (%d bytes body)", r.Method, r.URL.String(), len(bodyBytes))
+}
+
+// applyEditedResponse parses user-edited raw HTTP response text and updates the live response
+func applyEditedResponse(resp *http.Response, raw string) {
+	// Split header block and body
+	parts := strings.SplitN(raw, "\n\n", 2)
+	headerBlock := parts[0]
+	var newBody string
+	if len(parts) > 1 {
+		newBody = parts[1]
+	}
+
+	lines := strings.Split(headerBlock, "\n")
+	if len(lines) == 0 {
+		return
+	}
+
+	// Parse status line: PROTO STATUS_CODE STATUS_TEXT
+	statusLine := strings.TrimSpace(lines[0])
+	statusParts := strings.SplitN(statusLine, " ", 3)
+	if len(statusParts) >= 2 {
+		if code, err := fmt.Sscanf(statusParts[1], "%d", &resp.StatusCode); err == nil && code == 1 {
+			if len(statusParts) >= 3 {
+				resp.Status = statusParts[1] + " " + statusParts[2]
+			} else {
+				resp.Status = statusParts[1]
+			}
+		}
+	}
+
+	// Parse headers
+	resp.Header = make(http.Header)
+	for _, line := range lines[1:] {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		colonIdx := strings.Index(line, ":")
+		if colonIdx > 0 {
+			key := strings.TrimSpace(line[:colonIdx])
+			val := strings.TrimSpace(line[colonIdx+1:])
+			resp.Header.Add(key, val)
+		}
+	}
+
+	// Apply body
+	bodyBytes := []byte(newBody)
+	resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	resp.ContentLength = int64(len(bodyBytes))
+
+	log.Printf("[Proxy] Applied edited response: status %d (%d bytes body)", resp.StatusCode, len(bodyBytes))
+}
+
+// ResendRequest takes raw HTTP text and fires a new request from the proxy, returning the raw response
+func ResendRequest(rawReq string, targetHost string, useTLS bool) (string, error) {
+	parts := strings.SplitN(rawReq, "\n\n", 2)
+	headerBlock := parts[0]
+	var bodyStr string
+	if len(parts) > 1 {
+		bodyStr = parts[1]
+	}
+
+	lines := strings.Split(headerBlock, "\n")
+	if len(lines) == 0 {
+		return "", fmt.Errorf("empty request")
+	}
+
+	reqLine := strings.TrimSpace(lines[0])
+	reqParts := strings.SplitN(reqLine, " ", 3)
+	method := "GET"
+	path := "/"
+	if len(reqParts) >= 1 {
+		method = reqParts[0]
+	}
+	if len(reqParts) >= 2 {
+		path = reqParts[1]
+	}
+
+	// If targetHost is empty, parse Host from headers
+	if targetHost == "" {
+		for _, line := range lines[1:] {
+			trimmed := strings.TrimSpace(line)
+			if strings.HasPrefix(strings.ToLower(trimmed), "host:") {
+				targetHost = strings.TrimSpace(trimmed[5:])
+				break
+			}
+		}
+	}
+
+	// Detect scheme from targetHost port or path
+	scheme := "http"
+	if useTLS {
+		scheme = "https"
+	}
+
+	var fullURL string
+	// If path is already a full URL (e.g. GET https://host/path HTTP/1.1), use it directly
+	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
+		fullURL = path
+	} else {
+		// Detect TLS from host port if not explicitly set
+		if !useTLS && strings.Contains(targetHost, ":443") {
+			scheme = "https"
+		}
+		fullURL = fmt.Sprintf("%s://%s%s", scheme, targetHost, path)
+	}
+	var bodyReader io.Reader
+	if bodyStr != "" {
+		bodyReader = strings.NewReader(bodyStr)
+	}
+
+	req, err := http.NewRequest(method, fullURL, bodyReader)
+	if err != nil {
+		return "", err
+	}
+
+	// Parse headers
+	for _, line := range lines[1:] {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		colonIdx := strings.Index(line, ":")
+		if colonIdx > 0 {
+			key := strings.TrimSpace(line[:colonIdx])
+			val := strings.TrimSpace(line[colonIdx+1:])
+			req.Header.Add(key, val)
+		}
+	}
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	startTime := time.Now()
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	latency := int(time.Since(startTime).Milliseconds())
+
+	respBody, _ := io.ReadAll(resp.Body)
+	responseRaw := dumpResponse(resp, respBody)
+
+	// Build and save TrafficEvent so it appears in Proxy History
+	parsedURL := req.URL
+	uid := fmt.Sprintf("rep-%d", time.Now().UnixNano())
+	pathForExt := strings.Split(parsedURL.Path, "?")[0]
+	ext := ""
+	if dotIdx := strings.LastIndex(pathForExt, "."); dotIdx != -1 {
+		ext = pathForExt[dotIdx+1:]
+	}
+
+	fullMime := resp.Header.Get("Content-Type")
+	mimeType := fullMime
+	if idx := strings.Index(fullMime, ";"); idx != -1 {
+		mimeType = strings.TrimSpace(fullMime[:idx])
+	}
+
+	// Request sizes
+	reqHeaderStr := fmt.Sprintf("%s %s %s\n", method, parsedURL.RequestURI(), "HTTP/1.1")
+	for k, vv := range req.Header {
+		for _, v := range vv {
+			reqHeaderStr += fmt.Sprintf("%s: %s\n", k, v)
+		}
+	}
+	reqHeadersSize := int64(len(reqHeaderStr))
+	reqBodySize := int64(len(bodyStr))
+
+	// Response sizes
+	resHeaderStr := fmt.Sprintf("%s %s\n", resp.Proto, resp.Status)
+	for k, vv := range resp.Header {
+		for _, v := range vv {
+			resHeaderStr += fmt.Sprintf("%s: %s\n", k, v)
+		}
+	}
+	resHeadersSize := int64(len(resHeaderStr))
+
+	dbEvent := TrafficEvent{
+		UID:                 uid,
+		Method:              method,
+		Host:                targetHost,
+		Path:                parsedURL.Path,
+		Query:               parsedURL.RawQuery,
+		StatusCode:          resp.StatusCode,
+		MimeType:            mimeType,
+		Size:                resHeadersSize + int64(len(respBody)),
+		RequestSize:         reqHeadersSize + reqBodySize,
+		Protocol:            resp.Proto,
+		TLS:                 useTLS,
+		ServerIP:            getIPCached(targetHost),
+		SourceIP:            "127.0.0.1",
+		RequestRaw:          rawReq,
+		ResponseRaw:         responseRaw,
+		Extension:           ext,
+		Latency:             latency,
+		Source:              "repeater",
+		Time:                startTime.Format("2006-01-02 15:04:05.000"),
+		StartTime:           startTime.Format(time.RFC3339),
+		EndTime:             time.Now().Format(time.RFC3339),
+		PayloadRequestSize:  reqBodySize,
+		PayloadResponseSize: int64(len(respBody)),
+		HeadersSize:         reqHeadersSize + resHeadersSize,
+		RequestHeadersSize:  reqHeadersSize,
+		ResponseHeadersSize: resHeadersSize,
+		UrlLength:           int64(len(parsedURL.String())),
+	}
+
+	if resp.Header.Get("Set-Cookie") != "" {
+		dbEvent.HasCookie = true
+		dbEvent.SetCookies = len(resp.Header["Set-Cookie"])
+	}
+
+	if strings.Contains(strings.ToLower(mimeType), "html") {
+		dbEvent.Title = extractTitle(respBody)
+	}
+
+	InsertRequest(&dbEvent)
+
+	// Broadcast via WebSocket so it appears live in proxy history
+	if currentHub != nil {
+		protoEvent := &traffic.TrafficEvent{
+			Uid:                 uid,
+			Id:                  uint32(dbEvent.ID),
+			Method:              method,
+			Host:                targetHost,
+			Path:                parsedURL.Path,
+			Query:               parsedURL.RawQuery,
+			StatusCode:          int32(resp.StatusCode),
+			MimeType:            mimeType,
+			Size:                dbEvent.Size,
+			RequestSize:         dbEvent.RequestSize,
+			Protocol:            resp.Proto,
+			Tls:                 useTLS,
+			ServerIp:            dbEvent.ServerIP,
+			SourceIp:            "127.0.0.1",
+			RequestRaw:          rawReq,
+			ResponseRaw:         responseRaw,
+			Extension:           ext,
+			Latency:             int32(latency),
+			Source:              "repeater",
+			Time:                dbEvent.Time,
+			StartTime:           dbEvent.StartTime,
+			EndTime:             dbEvent.EndTime,
+			PayloadRequestSize:  reqBodySize,
+			PayloadResponseSize: int64(len(respBody)),
+			HeadersSize:         dbEvent.HeadersSize,
+			ReqHeadersSize:      reqHeadersSize,
+			ResHeadersSize:      resHeadersSize,
+			UrlLength:           dbEvent.UrlLength,
+		}
+		batch := &traffic.WSBatch{Events: []*traffic.TrafficEvent{protoEvent}}
+		if data, err := proto.Marshal(batch); err == nil {
+			currentHub.Broadcast <- WSMessage{Type: "new_traffic_bin", BinaryData: data}
+		}
+	}
+
+	return responseRaw, nil
+}
+
+func dumpRequest(r *http.Request, body []byte) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s %s %s\n", r.Method, r.URL.String(), r.Proto)
+	for k, vv := range r.Header {
+		for _, v := range vv {
+			fmt.Fprintf(&b, "%s: %s\n", k, v)
+		}
+	}
+	b.WriteString("\n")
+	b.Write(body)
+	return b.String()
+}
+
+func dumpResponse(r *http.Response, body []byte) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s %s\n", r.Proto, r.Status)
+	for k, vv := range r.Header {
+		for _, v := range vv {
+			fmt.Fprintf(&b, "%s: %s\n", k, v)
+		}
+	}
+	b.WriteString("\n")
+	b.Write(body)
+
+	// Add Trailers if present (crucial for gRPC)
+	if len(r.Trailer) > 0 {
+		b.WriteString("\n--- Trailers ---\n")
+		for k, vv := range r.Trailer {
+			for _, v := range vv {
+				fmt.Fprintf(&b, "%s: %s\n", k, v)
+			}
+		}
+	}
+	return b.String()
+}
+
+func extractTitle(body []byte) string {
+	if len(body) == 0 {
+		return ""
+	}
+	// Only scan first 32KB for title to be safe
+	limit := len(body)
+	if limit > 32768 {
+		limit = 32768
+	}
+	content := string(body[:limit])
+
+	// Case-insensitive search for <title>
+	lowerContent := strings.ToLower(content)
+	startTag := "<title"
+	startIdx := strings.Index(lowerContent, startTag)
+	if startIdx == -1 {
+		return ""
+	}
+
+	// Find close of start tag (to handle <title class="..."> )
+	tagEndIdx := strings.Index(content[startIdx:], ">")
+	if tagEndIdx == -1 {
+		return ""
+	}
+	actualStart := startIdx + tagEndIdx + 1
+
+	endTag := "</title>"
+	endIdx := strings.Index(lowerContent[actualStart:], endTag)
+	if endIdx == -1 {
+		return ""
+	}
+
+	title := strings.TrimSpace(content[actualStart : actualStart+endIdx])
+	// Unescape common HTML entities simple way
+	title = strings.ReplaceAll(title, "&amp;", "&")
+	title = strings.ReplaceAll(title, "&lt;", "<")
+	title = strings.ReplaceAll(title, "&gt;", ">")
+	title = strings.ReplaceAll(title, "&quot;", "\"")
+	title = strings.ReplaceAll(title, "&#39;", "'")
+
+	if len(title) > 200 {
+		title = title[:197] + "..."
+	}
+	return title
+}
+
+func TrafficEventFromProto(p *traffic.TrafficEvent) TrafficEvent {
+	return TrafficEvent{
+		UID:                 p.Uid,
+		ID:                  int(p.Id),
+		Method:              p.Method,
+		Host:                p.Host,
+		Path:                p.Path,
+		Query:               p.Query,
+		StatusCode:          int(p.StatusCode),
+		MimeType:            p.MimeType,
+		Size:                p.Size,
+		RequestSize:         p.RequestSize,
+		Protocol:            p.Protocol,
+		TLS:                 p.Tls,
+		TLSIssuer:           p.TlsIssuer,
+		ServerIP:            p.ServerIp,
+		SourceIP:            p.SourceIp,
+		LPort:               int(p.Lport),
+		RPort:               int(p.Rport),
+		RequestRaw:          p.RequestRaw,
+		ResponseRaw:         p.ResponseRaw,
+		Extension:           p.Extension,
+		Title:               p.Title,
+		Latency:             int(p.Latency),
+		HasCookie:           p.HasCookie,
+		SetCookies:          int(p.SetCookies),
+		Source:              p.Source,
+		Time:                p.Time,
+		Length:              p.Length,
+		PayloadRequestSize:  p.PayloadRequestSize,
+		PayloadResponseSize: p.PayloadResponseSize,
+		HeadersSize:         p.HeadersSize,
+		StartTime:           p.StartTime,
+		EndTime:             p.EndTime,
+		RequestHeadersSize:  p.ReqHeadersSize,
+		ResponseHeadersSize: p.ResHeadersSize,
+		UrlLength:           p.UrlLength,
+	}
+}

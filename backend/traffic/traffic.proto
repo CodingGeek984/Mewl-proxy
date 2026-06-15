@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package traffic;
+
+option go_package = "meowl/backend/traffic";
+
+message TrafficEvent {
+    string uid = 1;
+    uint32 id = 2;
+    string method = 3;
+    string host = 4;
+    string path = 5;
+    string query = 6;
+    int32  status_code = 7;
+    int64  size = 8;
+    int64  request_size = 9;
+    int32  latency = 10;
+    string mime_type = 11;
+    bool   tls = 12;
+    string protocol = 13;
+    int32  lport = 14;
+    int32  rport = 15;
+    string source_ip = 16;
+    string server_ip = 17;
+    bool   has_cookie = 18;
+    string extension = 19;
+    string source = 20;
+    string title = 21;
+    string tls_issuer = 22;
+    int32  set_cookies = 23;
+    string request_raw = 24;
+    string response_raw = 25;
+    string time = 26;
+    int64  length = 27;
+    int64  payload_request_size = 28;
+    int64  payload_response_size = 29;
+    int64  headers_size = 30;
+    string start_time = 31;
+    string end_time = 32;
+    bytes  request_body = 33;
+    bytes  response_body = 34;
+    int64  req_headers_size = 35;
+    int64  res_headers_size = 36;
+    int64  url_length = 37;
+}
+
+message ControlSignal {
+    enum Type {
+        INTERCEPT_ON = 0;
+        INTERCEPT_OFF = 1;
+        RELEASE_REQUEST = 2;
+        DROP_REQUEST = 3;
+        RELEASE_AND_INTERCEPT_RESPONSE = 4;
+    }
+    Type type = 1;
+    string target_uid = 2;
+    string payload = 3;
+}
+
+message WSBatch {
+    repeated TrafficEvent events = 1;
+}
