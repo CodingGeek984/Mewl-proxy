@@ -21,3 +21,8 @@ logs/
 venv/
 __pycache__/
 *.pyc
+*.db
+*.db-shm
+*.db-wal
+build/bin/
+build/windows/installer/tmp/
