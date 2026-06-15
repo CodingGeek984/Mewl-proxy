@@ -11,3 +11,9 @@ node_modules/
 dist/
 logs/
 *.log
+
+*.db
+*.db-shm
+*.db-wal
+build/bin/
+
