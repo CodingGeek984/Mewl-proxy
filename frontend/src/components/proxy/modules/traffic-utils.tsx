@@ -284,11 +284,11 @@ function Mono({ children, className = "" }: { children: React.ReactNode; classNa
 export const ALL_COLUMNS: ColDef[] = [
     {
         key: "id", label: "#", defaultWidth: 40, minWidth: 30, maxWidth: 60, sortKey: "id", flexGrow: 0,
-        render: (r, _, idx) => <Clip><Mono className="text-foreground-muted/60 text-center w-full text-[9px]">{r.id === 0 ? idx + 1 : r.id}</Mono></Clip>
+        render: (r, _, idx) => <Clip><Mono className="text-[var(--tokyo-cyan)]/60 text-center w-full text-[9px]">{r.id === 0 ? idx + 1 : r.id}</Mono></Clip>
     },
     {
         key: "method", label: "Method", defaultWidth: 60, minWidth: 50, maxWidth: 84, sortKey: "method", flexGrow: 0,
-        render: (r) => <Clip><span className={`font-sans font-bold px-1.5 py-0.5 rounded-md text-[9px] tracking-wider uppercase bg-white/5 border border-white/5 ${getMethodClass(r.method)}`}>{r.method}</span></Clip>
+        render: (r) => <Clip><span className={`method-badge ${getMethodClass(r.method)}`}>{r.method}</span></Clip>
     },
     {
         key: "direction", label: "Dir", defaultWidth: 40, minWidth: 30, maxWidth: 64, sortKey: "status_code", flexGrow: 0,
@@ -303,43 +303,43 @@ export const ALL_COLUMNS: ColDef[] = [
     },
     {
         key: "host", label: "Domain", defaultWidth: 160, minWidth: 100, sortKey: "host", flexGrow: 1,
-        render: (r) => <Clip><span className="text-foreground/90 font-medium">{r.host}</span></Clip>
+        render: (r) => <Clip><span className="text-[var(--tokyo-cyan)] font-medium">{r.host}</span></Clip>
     },
     {
         key: "url_base", label: "Host", defaultWidth: 200, minWidth: 100, sortKey: "host", flexGrow: 1,
-        render: (r) => <Clip><span className="text-foreground/90 font-medium"><span className="opacity-40">{r.tls ? "https" : "http"}://</span>{r.host}</span></Clip>
+        render: (r) => <Clip><span className="text-[var(--tokyo-cyan)] font-medium"><span className="opacity-40">{r.tls ? "https" : "http"}://</span>{r.host}</span></Clip>
     },
     {
         key: "path", label: "Path", defaultWidth: 260, minWidth: 100, sortKey: "path", flexGrow: 2,
-        render: (r) => <Clip><span className="text-foreground-muted tracking-tight">{r.path}</span></Clip>
+        render: (r) => <Clip><span className="text-[var(--tokyo-cyan)]/90 tracking-tight">{r.path}</span></Clip>
     },
     {
         key: "query", label: "Query", defaultWidth: 150, minWidth: 40, sortKey: "query", flexGrow: 1,
-        render: (r) => <Clip><span className="text-foreground-subtle text-[10px] italic">{r.query || "-"}</span></Clip>
+        render: (r) => <Clip><span className="text-[var(--tokyo-cyan)]/70 text-[10px] italic">{r.query || "-"}</span></Clip>
     },
     {
         key: "status", label: "Status", defaultWidth: 60, minWidth: 44, sortKey: "status_code", flexGrow: 0,
-        render: (r) => <Clip><Mono className={`${getStatusClass(r.status_code)} text-center w-full font-bold`}>{r.status_code || "-"}</Mono></Clip>
+        render: (r) => <Clip><Mono className={`${getStatusClass(r.status_code)} text-center w-full rounded-full bg-[var(--tokyo-panel)] py-0.5 font-bold`}>{r.status_code || "-"}</Mono></Clip>
     },
     {
         key: "mime", label: "MIME", defaultWidth: 80, minWidth: 50, sortKey: "mime_type", flexGrow: 0,
-        render: (r) => <Clip><span className="text-foreground-muted/80 text-[10px] uppercase tracking-tighter">{r.mime_type?.split("/")[1] || r.mime_type || "-"}</span></Clip>
+        render: (r) => <Clip><span className="text-[var(--tokyo-cyan)]/80 text-[10px] uppercase tracking-tighter">{r.mime_type?.split("/")[1] || r.mime_type || "-"}</span></Clip>
     },
     {
         key: "total_size", label: "Size", defaultWidth: 80, minWidth: 60, sortKey: "size", flexGrow: 0,
-        render: (r) => <Clip><Mono className="text-accent text-right w-full text-[10px] font-bold">{r.status_code === 0 ? "-" : formatBytes((r.request_size || 0) + (r.size || 0))}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)] text-right w-full text-[10px] font-bold">{r.status_code === 0 ? "-" : formatBytes((r.request_size || 0) + (r.size || 0))}</Mono></Clip>
     },
     {
         key: "payload_total", label: "Payload", defaultWidth: 90, minWidth: 60, sortKey: "payload_request_size", flexGrow: 0,
-        render: (r) => <Clip><Mono className="text-accent/70 text-right w-full text-[10px]">{r.status_code === 0 ? "-" : formatBytes((r.payload_request_size || 0) + (r.payload_response_size || 0))}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/70 text-right w-full text-[10px]">{r.status_code === 0 ? "-" : formatBytes((r.payload_request_size || 0) + (r.payload_response_size || 0))}</Mono></Clip>
     },
     {
         key: "headers_size", label: "H-Size", defaultWidth: 80, minWidth: 60, sortKey: "headers_size", flexGrow: 0,
-        render: (r) => <Clip><Mono className="text-foreground-subtle text-right w-full text-[10px]">{r.status_code === 0 ? "-" : formatBytes(r.headers_size)}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/50 text-right w-full text-[10px]">{r.status_code === 0 ? "-" : formatBytes(r.headers_size)}</Mono></Clip>
     },
     {
         key: "request_size", label: "Req Size", defaultWidth: 80, minWidth: 60, sortKey: "request_size", flexGrow: 0,
-        render: (r) => <Clip><Mono className="text-foreground-muted/60 text-right w-full text-[10px]">{formatBytes(r.request_size)}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/60 text-right w-full text-[10px]">{formatBytes(r.request_size)}</Mono></Clip>
     },
     {
         key: "response_size", label: "Res Size", defaultWidth: 80, minWidth: 60, sortKey: "size", flexGrow: 0,
@@ -347,7 +347,7 @@ export const ALL_COLUMNS: ColDef[] = [
     },
     {
         key: "url_length", label: "Length URL", defaultWidth: 80, minWidth: 30, sortKey: "url_length",
-        render: (r) => <Clip><Mono className="text-muted-foreground/80 text-right w-full">{r.url_length || 0}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/80 text-right w-full">{r.url_length || 0}</Mono></Clip>
     },
     {
         key: "payload_response_size", label: "Response Payload Size", defaultWidth: 140, minWidth: 50, sortKey: "payload_response_size",
@@ -355,11 +355,11 @@ export const ALL_COLUMNS: ColDef[] = [
     },
     {
         key: "payload_request_size", label: "Request Payload Size", defaultWidth: 140, minWidth: 50, sortKey: "payload_request_size",
-        render: (r) => <Clip><Mono className="text-muted-foreground/90 text-right w-full">{formatBytes(r.payload_request_size)}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/90 text-right w-full">{formatBytes(r.payload_request_size)}</Mono></Clip>
     },
     {
         key: "req_headers_size", label: "Request Headers Size", defaultWidth: 140, minWidth: 50, sortKey: "req_headers_size",
-        render: (r) => <Clip><Mono className="text-muted-foreground/90 text-right w-full">{formatBytes(r.req_headers_size)}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/90 text-right w-full">{formatBytes(r.req_headers_size)}</Mono></Clip>
     },
     {
         key: "res_headers_size", label: "Response Headers Size", defaultWidth: 150, minWidth: 50, sortKey: "res_headers_size",
@@ -390,55 +390,55 @@ export const ALL_COLUMNS: ColDef[] = [
     },
     {
         key: "ip", label: "RHOST", defaultWidth: 110, minWidth: 40, sortKey: "server_ip",
-        render: (r) => <Clip><Mono className="text-muted-foreground/80 text-[10px]">{r.server_ip || "-"}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/80 text-[10px]">{r.server_ip || "-"}</Mono></Clip>
     },
     {
         key: "source_ip", label: "LHOST", defaultWidth: 110, minWidth: 40, sortKey: "source_ip",
-        render: (r) => <Clip><Mono className="text-muted-foreground/80 text-[10px]">{r.source_ip || "-"}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/80 text-[10px]">{r.source_ip || "-"}</Mono></Clip>
     },
     {
         key: "lport", label: "LPORT", defaultWidth: 56, minWidth: 30, sortKey: "lport",
-        render: (r) => <Clip><Mono className="text-muted-foreground/80 text-[10px]">{r.lport ?? "-"}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/80 text-[10px]">{r.lport ?? "-"}</Mono></Clip>
     },
     {
         key: "rport", label: "RPORT", defaultWidth: 56, minWidth: 30, sortKey: "rport",
-        render: (r) => <Clip><Mono className="text-muted-foreground/80 text-[10px]">{r.rport ?? "-"}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/80 text-[10px]">{r.rport ?? "-"}</Mono></Clip>
     },
     {
         key: "extension", label: "Ext", defaultWidth: 52, minWidth: 20, sortKey: "extension",
-        render: (r) => <Clip><span className="text-muted-foreground/90 font-medium text-[10px]">{r.extension || "-"}</span></Clip>
+        render: (r) => <Clip><span className="text-[var(--tokyo-cyan)]/90 font-medium text-[10px]">{r.extension || "-"}</span></Clip>
     },
     {
         key: "source", label: "Source", defaultWidth: 72, minWidth: 36, sortKey: "source",
-        render: (r) => <Clip><span className="text-muted-foreground/80 text-[10px] uppercase font-semibold tracking-tighter">{r.source || "browser"}</span></Clip>
+        render: (r) => <Clip><span className="text-[var(--tokyo-cyan)]/80 text-[10px] uppercase font-semibold tracking-tighter">{r.source || "browser"}</span></Clip>
     },
     {
         key: "title", label: "Title", defaultWidth: 140, minWidth: 40, sortKey: "title",
-        render: (r) => <Clip><span className="text-foreground/60 text-[10px]">{r.title || "-"}</span></Clip>
+        render: (r) => <Clip><span className="text-[var(--tokyo-cyan)]/60 text-[10px]">{r.title || "-"}</span></Clip>
     },
     {
         key: "tls_issuer", label: "TLS Issuer", defaultWidth: 130, minWidth: 40, sortKey: "tls_issuer",
-        render: (r) => <Clip><span className="text-muted-foreground/90 text-[10px]">{formatIssuer(r.tls_issuer)}</span></Clip>
+        render: (r) => <Clip><span className="text-[var(--tokyo-cyan)]/90 text-[10px]">{formatIssuer(r.tls_issuer)}</span></Clip>
     },
     {
         key: "url", label: "URL", defaultWidth: 300, minWidth: 50, sortKey: "host",
-        render: (r) => <Clip><span className="text-muted-foreground/80 text-[10px]">{buildURL(r)}</span></Clip>
+        render: (r) => <Clip><span className="text-[var(--tokyo-cyan)]/80 text-[10px]">{buildURL(r)}</span></Clip>
     },
     {
         key: "file", label: "File", defaultWidth: 110, minWidth: 30, sortKey: "path",
-        render: (r) => <Clip><span className="text-foreground/60 text-[10px]">{getFileFromPath(r.path)}</span></Clip>
+        render: (r) => <Clip><span className="text-[var(--tokyo-cyan)]/60 text-[10px]">{getFileFromPath(r.path)}</span></Clip>
     },
     {
         key: "start_time", label: "Start", defaultWidth: 160, minWidth: 50, sortKey: "start_time",
-        render: (r) => <Clip><Mono className="text-muted-foreground/80 text-[10px]">{formatTime(r.start_time || r.time)}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/80 text-[10px]">{formatTime(r.start_time || r.time)}</Mono></Clip>
     },
     {
         key: "end_time", label: "End", defaultWidth: 160, minWidth: 50, sortKey: "end_time",
-        render: (r) => <Clip><Mono className="text-muted-foreground/80 text-[10px]">{r.end_time ? formatTime(r.end_time) : (r.time ? formatTime(new Date(new Date(r.time).getTime() + (r.latency || 0)).toISOString()) : "-")}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/80 text-[10px]">{r.end_time ? formatTime(r.end_time) : (r.time ? formatTime(new Date(new Date(r.time).getTime() + (r.latency || 0)).toISOString()) : "-")}</Mono></Clip>
     },
     {
         key: "time_col", label: "Time", defaultWidth: 160, minWidth: 50, sortKey: "time",
-        render: (r) => <Clip><Mono className="text-muted-foreground/90 text-[10px]">{formatTime(r.start_time || r.time)}</Mono></Clip>
+        render: (r) => <Clip><Mono className="text-[var(--tokyo-cyan)]/90 text-[10px]">{formatTime(r.start_time || r.time)}</Mono></Clip>
     },
 ]
 

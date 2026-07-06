@@ -134,6 +134,21 @@ func evaluateDSL(expression string, vars map[string]interface{}) bool {
 }
 
 func applyRequestRules(r *http.Request, body []byte, category string) ([]byte, bool) {
+	// Execute Custom JavaScript Extensions FIRST
+	if len(activeScripts) > 0 {
+		rawReq := dumpRequest(r, body)
+		modifiedRaw := RunScriptsOnRequest(rawReq)
+		if modifiedRaw != rawReq {
+			applyEditedRequest(r, modifiedRaw)
+			// Re-read body if modified
+			if r.Body != nil {
+				newBody, _ := io.ReadAll(r.Body)
+				body = newBody
+				r.Body = io.NopCloser(bytes.NewBuffer(body))
+			}
+		}
+	}
+
 	rules := GetRules()
 	modified := false
 
@@ -238,6 +253,21 @@ func applyRequestRules(r *http.Request, body []byte, category string) ([]byte, b
 }
 
 func applyResponseRules(resp *http.Response, body []byte, category string) ([]byte, bool) {
+	// Execute Custom JavaScript Extensions FIRST
+	if len(activeScripts) > 0 {
+		rawRes := dumpResponse(resp, body)
+		modifiedRaw := RunScriptsOnResponse(rawRes)
+		if modifiedRaw != rawRes {
+			applyEditedResponse(resp, modifiedRaw)
+			// Re-read body if modified
+			if resp.Body != nil {
+				newBody, _ := io.ReadAll(resp.Body)
+				body = newBody
+				resp.Body = io.NopCloser(bytes.NewBuffer(body))
+			}
+		}
+	}
+
 	rules := GetRules()
 	modified := false
 
@@ -894,4 +924,8 @@ func TrafficEventFromProto(e *traffic.TrafficEvent) TrafficEvent {
 		Latency: int(e.Latency), Source: e.Source, Time: e.Time, StartTime: e.StartTime, EndTime: e.EndTime,
 		RPort: int(e.Rport), LPort: int(e.Lport), HasCookie: e.HasCookie, Title: e.Title,
 	}
+}
+
+func IsProxyRunning() bool {
+	return currentSrv != nil
 }

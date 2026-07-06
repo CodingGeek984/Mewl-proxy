@@ -20,23 +20,23 @@ function StatCard({ icon: Icon, label, value, sub, color = "sky" }: {
   icon: any; label: string; value: string | number; sub?: string; color?: string
 }) {
   const colorMap: Record<string, string> = {
-    sky: "text-[var(--accent)] bg-sky-500/10 border-sky-500/20",
-    emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-    amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-    red: "text-red-400 bg-red-500/10 border-red-500/20",
-    purple: "text-purple-400 bg-purple-500/10 border-purple-500/20",
+    sky: "text-[var(--tokyo-cyan)] bg-[var(--tokyo-cyan-soft)] border-[var(--tokyo-border-cyan)] shadow-[0_0_10px_var(--tokyo-cyan-soft)_inset]",
+    emerald: "text-[var(--tokyo-green)] bg-[var(--tokyo-green-soft)] border-emerald-500/20 shadow-[0_0_10px_var(--tokyo-green-soft)_inset]",
+    amber: "text-[var(--status-warning)] bg-[var(--status-warning)]/10 border-[var(--status-warning)]/20 shadow-[0_0_10px_var(--status-warning)_inset]",
+    red: "text-[var(--tokyo-magenta)] bg-[var(--tokyo-magenta-soft)] border-[var(--tokyo-border-magenta)] shadow-[0_0_10px_var(--tokyo-magenta-soft)_inset]",
+    purple: "text-[var(--tokyo-magenta)] bg-[var(--tokyo-magenta-soft)] border-[var(--tokyo-border-magenta)] shadow-[0_0_10px_var(--tokyo-magenta-soft)_inset]",
   }
   const c = colorMap[color] || colorMap.sky
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg border border-border/20 bg-muted/5 hover:bg-muted/10 transition-colors group">
+    <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] hover:bg-[var(--tokyo-cyan-soft)] transition-colors group">
       <div className={`size-9 rounded-lg ${c} flex items-center justify-center shrink-0 border transition-all group-hover:scale-105`}>
         <Icon className="size-4" />
       </div>
       <div className="min-w-0">
-        <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">{label}</div>
-        <div className="text-sm font-bold text-foreground/90 tabular-nums">{value}</div>
-        {sub && <div className="text-[9px] text-muted-foreground/40 font-mono">{sub}</div>}
+        <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--tokyo-cyan)]/50">{label}</div>
+        <div className="text-sm font-bold text-[var(--tokyo-cyan)] tabular-nums">{value}</div>
+        {sub && <div className="text-[9px] text-[var(--tokyo-cyan)]/40 font-mono">{sub}</div>}
       </div>
     </div>
   )
@@ -45,18 +45,23 @@ function StatCard({ icon: Icon, label, value, sub, color = "sky" }: {
 function MethodBar({ method, count, total }: { method: string; count: number; total: number }) {
   const pct = total > 0 ? (count / total) * 100 : 0
   const colors: Record<string, string> = {
-    GET: "bg-emerald-500", POST: "bg-sky-500", PUT: "bg-amber-500",
-    DELETE: "bg-red-500", PATCH: "bg-purple-500", OPTIONS: "bg-zinc-500",
-    HEAD: "bg-teal-500", OTHER: "bg-zinc-600",
+    GET: "bg-[var(--tokyo-cyan)] shadow-[0_0_10px_var(--tokyo-cyan)]", 
+    POST: "bg-[var(--tokyo-cyan)] shadow-[0_0_10px_var(--tokyo-cyan)]", 
+    PUT: "bg-[var(--tokyo-cyan)] shadow-[0_0_10px_var(--tokyo-cyan)]",
+    DELETE: "bg-[var(--tokyo-cyan)] shadow-[0_0_10px_var(--tokyo-cyan)]", 
+    PATCH: "bg-[var(--tokyo-cyan)] shadow-[0_0_10px_var(--tokyo-cyan)]", 
+    OPTIONS: "bg-[var(--tokyo-cyan)] shadow-[0_0_10px_var(--tokyo-cyan)]",
+    HEAD: "bg-[var(--tokyo-cyan)] shadow-[0_0_10px_var(--tokyo-cyan)]", 
+    OTHER: "bg-[var(--tokyo-cyan)]/50",
   }
   return (
     <div className="flex items-center gap-3 text-[11px]">
-      <span className="w-14 font-mono font-bold text-foreground/70 shrink-0">{method}</span>
-      <div className="flex-1 h-2 bg-muted/20 rounded-full overflow-hidden">
+      <span className="w-14 font-mono font-bold text-[var(--tokyo-cyan)]/70 shrink-0">{method}</span>
+      <div className="flex-1 h-2 bg-[var(--tokyo-panel-2)] rounded-full overflow-hidden">
         <div className={`h-full rounded-full ${colors[method] || colors.OTHER} transition-all duration-500`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="w-10 text-right font-mono text-muted-foreground/60 tabular-nums">{count}</span>
-      <span className="w-10 text-right font-mono text-muted-foreground/30 tabular-nums text-[9px]">{pct.toFixed(0)}%</span>
+      <span className="w-10 text-right font-mono text-[var(--tokyo-cyan)]/60 tabular-nums">{count}</span>
+      <span className="w-10 text-right font-mono text-[var(--tokyo-cyan)]/30 tabular-nums text-[9px]">{pct.toFixed(0)}%</span>
     </div>
   )
 }
@@ -221,15 +226,15 @@ function StatusTab() {
     <ScrollArea className="flex-1 min-h-0">
       <div className="p-4 flex flex-col gap-5 max-w-5xl mx-auto">
         {/* Connection Banner */}
-        <div className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border ${isConnected
-          ? "bg-emerald-500/5 border-emerald-500/20"
-          : "bg-red-500/5 border-red-500/20"
+        <div className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border shadow-lg ${isConnected
+          ? "bg-[var(--tokyo-green-soft)] border-[var(--tokyo-green)]/30 shadow-[0_0_15px_var(--tokyo-green-soft)_inset]"
+          : "bg-[var(--tokyo-magenta-soft)] border-[var(--tokyo-border-magenta)] shadow-[0_0_15px_var(--tokyo-magenta-soft)_inset]"
         }`}>
-          {isConnected ? <Wifi className="size-4 text-emerald-400" /> : <WifiOff className="size-4 text-red-400" />}
-          <span className={`text-[11px] font-bold uppercase tracking-wider ${isConnected ? "text-emerald-400" : "text-red-400"}`}>
+          {isConnected ? <Wifi className="size-4 text-[var(--tokyo-green)]" /> : <WifiOff className="size-4 text-[var(--tokyo-magenta)]" />}
+          <span className={`text-[11px] font-bold uppercase tracking-wider ${isConnected ? "text-[var(--tokyo-green)]" : "text-[var(--tokyo-magenta)]"}`}>
             {isConnected ? "Proxy Engine Online" : "Disconnected"}
           </span>
-          <span className="text-[10px] text-muted-foreground/50 ml-auto font-mono">
+          <span className="text-[10px] text-[var(--tokyo-cyan)]/50 ml-auto font-mono">
             Uptime: {formatUptime(uptime)}
           </span>
         </div>
@@ -244,14 +249,14 @@ function StatusTab() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Method Distribution */}
-          <div className="rounded-lg border border-border/20 bg-muted/5 overflow-hidden">
-            <div className="h-8 flex items-center px-4 border-b border-border/10 bg-muted/10">
-              <TrendingUp className="size-3 text-[var(--accent)] mr-2" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/70">Method Distribution</span>
+          <div className="rounded-lg border border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel)] overflow-hidden">
+            <div className="h-8 flex items-center px-4 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)]">
+              <TrendingUp className="size-3 text-[var(--tokyo-magenta)] mr-2" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--tokyo-cyan)]/70">Method Distribution</span>
             </div>
             <div className="p-4 flex flex-col gap-2.5">
               {sortedMethods.length === 0 ? (
-                <div className="text-[11px] text-muted-foreground/30 text-center py-6">No data yet</div>
+                <div className="text-[11px] text-[var(--tokyo-cyan)]/30 text-center py-6">No data yet</div>
               ) : (
                 sortedMethods.map(([m, c]) => <MethodBar key={m} method={m} count={c} total={stats.total} />)
               )}
@@ -260,20 +265,20 @@ function StatusTab() {
 
           {/* Status Codes & Transfer */}
           <div className="flex flex-col gap-4">
-            <div className="rounded-lg border border-border/20 bg-muted/5 overflow-hidden">
-              <div className="h-8 flex items-center px-4 border-b border-border/10 bg-muted/10">
-                <Activity className="size-3 text-emerald-400 mr-2" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/70">Response Codes</span>
+            <div className="rounded-lg border border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel)] overflow-hidden">
+              <div className="h-8 flex items-center px-4 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)]">
+                <Activity className="size-3 text-[var(--tokyo-green)] mr-2" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--tokyo-cyan)]/70">Response Codes</span>
               </div>
-              <div className="grid grid-cols-4 divide-x divide-border/10">
+              <div className="grid grid-cols-4 divide-x divide-[var(--tokyo-border-cyan)]">
                 {["2xx", "3xx", "4xx", "5xx"].map(code => (
                   <div key={code} className="p-3 text-center">
-                    <div className={`text-sm font-bold tabular-nums ${
-                      code === "2xx" ? "text-emerald-400" :
-                      code === "3xx" ? "text-[var(--accent)]" :
-                      code === "4xx" ? "text-amber-400" : "text-red-400"
+                    <div className={`text-sm font-bold tabular-nums drop-shadow-md ${
+                      code === "2xx" ? "text-[var(--tokyo-green)]" :
+                      code === "3xx" ? "text-[var(--tokyo-cyan)] drop-shadow-[0_0_8px_var(--tokyo-cyan)]" :
+                      code === "4xx" ? "text-[var(--tokyo-cyan)]" : "text-[var(--tokyo-magenta)]"
                     }`}>{stats.statusCodes[code] || 0}</div>
-                    <div className="text-[9px] font-mono text-muted-foreground/40 uppercase">{code}</div>
+                    <div className="text-[9px] font-mono text-[var(--tokyo-cyan)]/40 uppercase">{code}</div>
                   </div>
                 ))}
               </div>
@@ -285,24 +290,24 @@ function StatusTab() {
             </div>
 
             {/* System Info */}
-            <div className="rounded-lg border border-border/20 bg-muted/5 overflow-hidden">
-              <div className="h-8 flex items-center px-4 border-b border-border/10 bg-muted/10">
-                <Cpu className="size-3 text-purple-400 mr-2" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/70">System</span>
+            <div className="rounded-lg border border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel)] overflow-hidden">
+              <div className="h-8 flex items-center px-4 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)]">
+                <Cpu className="size-3 text-[var(--tokyo-magenta)] mr-2" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--tokyo-cyan)]/70">System</span>
               </div>
-              <div className="grid grid-cols-2 divide-x divide-border/10">
+              <div className="grid grid-cols-2 divide-x divide-[var(--tokyo-border-cyan)]">
                 <div className="p-3 flex items-center gap-2">
-                  <MemoryStick className="size-3 text-muted-foreground/30" />
+                  <MemoryStick className="size-3 text-[var(--tokyo-cyan)]/30" />
                   <div>
-                    <div className="text-[9px] text-muted-foreground/40 uppercase">Engine</div>
-                    <div className="text-[11px] font-mono text-foreground/70">Go + Wails v2</div>
+                    <div className="text-[9px] text-[var(--tokyo-cyan)]/40 uppercase">Engine</div>
+                    <div className="text-[11px] font-mono text-[var(--tokyo-cyan)]/70">Go + Wails v2</div>
                   </div>
                 </div>
                 <div className="p-3 flex items-center gap-2">
-                  <HardDrive className="size-3 text-muted-foreground/30" />
+                  <HardDrive className="size-3 text-[var(--tokyo-cyan)]/30" />
                   <div>
-                    <div className="text-[9px] text-muted-foreground/40 uppercase">DB Mode</div>
-                    <div className="text-[11px] font-mono text-foreground/70">SQLite WAL</div>
+                    <div className="text-[9px] text-[var(--tokyo-cyan)]/40 uppercase">DB Mode</div>
+                    <div className="text-[11px] font-mono text-[var(--tokyo-cyan)]/70">SQLite WAL</div>
                   </div>
                 </div>
               </div>
@@ -312,30 +317,30 @@ function StatusTab() {
 
         {/* Export / Import Section migrated here */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
-          <div className="rounded-lg border border-border/20 bg-muted/5 overflow-hidden">
-            <div className="h-8 flex items-center px-4 border-b border-border/10 bg-muted/10">
-              <Save className="size-3 text-[var(--accent)] mr-2" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/70">Export Session</span>
+          <div className="rounded-lg border border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel)] overflow-hidden">
+            <div className="h-8 flex items-center px-4 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)]">
+              <Save className="size-3 text-[var(--tokyo-magenta)] mr-2" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--tokyo-cyan)]/70">Export Session</span>
             </div>
             <div className="p-4 flex flex-col gap-3">
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={exportSession} className="text-[10px] uppercase font-bold tracking-widest h-8 flex-1">
+                <Button variant="outline" size="sm" onClick={exportSession} className="text-[10px] uppercase font-bold tracking-widest h-8 flex-1 border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)]">
                   Full JSON Export
                 </Button>
-                <Button variant="outline" size="sm" onClick={exportLightweight} className="text-[10px] uppercase font-bold tracking-widest h-8 flex-1">
+                <Button variant="outline" size="sm" onClick={exportLightweight} className="text-[10px] uppercase font-bold tracking-widest h-8 flex-1 border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)]">
                   Lightweight Export
                 </Button>
               </div>
-              {lastExport && <span className="text-[9px] text-muted-foreground/50 font-mono">Last export: {lastExport}</span>}
+              {lastExport && <span className="text-[9px] text-[var(--tokyo-cyan)]/50 font-mono">Last export: {lastExport}</span>}
             </div>
           </div>
-          <div className="rounded-lg border border-border/20 bg-muted/5 overflow-hidden">
-            <div className="h-8 flex items-center px-4 border-b border-border/10 bg-muted/10">
-              <Download className="size-3 text-emerald-400 mr-2" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/70">Import Session</span>
+          <div className="rounded-lg border border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel)] overflow-hidden">
+            <div className="h-8 flex items-center px-4 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)]">
+              <Download className="size-3 text-[var(--tokyo-green)] mr-2" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--tokyo-cyan)]/70">Import Session</span>
             </div>
             <div className="p-4 flex flex-col gap-3 h-[88px] justify-center">
-              <Button variant="outline" size="sm" onClick={importSession} className="text-[10px] uppercase font-bold tracking-widest border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 w-fit h-8">
+              <Button variant="outline" size="sm" onClick={importSession} className="text-[10px] uppercase font-bold tracking-widest border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)] w-fit h-8">
                 <Upload className="size-3 mr-2" /> Restore File
               </Button>
             </div>
@@ -589,10 +594,10 @@ function ProfileTab() {
 
 function ScanTab() {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center select-none">
-      <Radar className="size-12 text-muted-foreground/10 mb-4" />
-      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-2">Scanner</h3>
-      <p className="text-[10px] text-muted-foreground/30 max-w-xs">Automated vulnerability scanning is coming in a future release.</p>
+    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center select-none bg-[var(--tokyo-panel)]">
+      <Radar className="size-12 text-[var(--tokyo-cyan)]/10 mb-4" />
+      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--tokyo-cyan)]/40 mb-2">Scanner</h3>
+      <p className="text-[10px] text-[var(--tokyo-cyan)]/30 max-w-xs">Automated vulnerability scanning is coming in a future release.</p>
     </div>
   )
 }
@@ -601,30 +606,135 @@ function ScanTab() {
 
 export function DashboardModule() {
   return (
-    <Tabs defaultValue="status" className="flex h-full flex-col overflow-hidden">
-      <div className="border-b px-3 shrink-0 bg-background/40 backdrop-blur-md z-30">
-        <TabsList className="h-9 bg-muted/5 gap-1 p-1 border-b-0 rounded-lg">
-          <TabsTrigger value="status" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-sky-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">
-            Status
-          </TabsTrigger>
-          <TabsTrigger value="profile" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">
-            Profile
-          </TabsTrigger>
-          <TabsTrigger value="scan" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-purple-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">
-            Scan
-          </TabsTrigger>
-        </TabsList>
+    <div className="flex flex-col h-full overflow-hidden bg-[var(--tokyo-panel)] p-2 gap-2 text-[var(--tokyo-cyan)] font-mono">
+      {/* Top half: Left and Right panes */}
+      <div className="flex-1 flex flex-col lg:flex-row gap-2 min-h-0">
+        
+        {/* Left column: Tasks & Scans */}
+        <div className="w-full lg:w-[40%] flex flex-col border border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] rounded-md overflow-hidden">
+          <div className="h-8 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-3)] flex items-center px-3 shrink-0">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--tokyo-magenta)]">Tasks & Scans</span>
+          </div>
+          <ScrollArea className="flex-1 p-3">
+            <div className="flex flex-col gap-3">
+              <div className="border border-[var(--tokyo-border-cyan)]/50 rounded bg-[var(--tokyo-panel)] p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-bold">Live passive crawl</span>
+                  <span className="text-[9px] text-[var(--tokyo-cyan)]/60">Running</span>
+                </div>
+                <div className="w-full h-1 bg-[var(--tokyo-panel-2)] rounded-full overflow-hidden">
+                  <div className="h-full bg-[var(--tokyo-green)] w-full" />
+                </div>
+              </div>
+              <div className="border border-[var(--tokyo-border-cyan)]/50 rounded bg-[var(--tokyo-panel)] p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-bold">Live audit</span>
+                  <span className="text-[9px] text-[var(--tokyo-cyan)]/60">Running</span>
+                </div>
+                <div className="w-full h-1 bg-[var(--tokyo-panel-2)] rounded-full overflow-hidden">
+                  <div className="h-full bg-[var(--tokyo-cyan)] w-full" />
+                </div>
+              </div>
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Middle-Right: Event Log */}
+        <div className="flex-1 flex flex-col border border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] rounded-md overflow-hidden">
+          <div className="h-8 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-3)] flex items-center px-3 shrink-0">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--tokyo-cyan)]">Event Log</span>
+          </div>
+          <ScrollArea className="flex-1 p-3">
+            <table className="w-full text-[10px] text-left">
+              <thead>
+                <tr className="border-b border-[var(--tokyo-border-cyan)]/30 text-[var(--tokyo-cyan)]/50">
+                  <th className="font-normal py-1 w-24">Time</th>
+                  <th className="font-normal py-1 w-20">Type</th>
+                  <th className="font-normal py-1">Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-[var(--tokyo-border-cyan)]/10 hover:bg-[var(--tokyo-cyan-soft)] transition-colors">
+                  <td className="py-1.5 opacity-70">10:45:01 AM</td>
+                  <td className="py-1.5 text-[var(--tokyo-green)]">Info</td>
+                  <td className="py-1.5">Proxy listener started on 127.0.0.1:8081</td>
+                </tr>
+                <tr className="border-b border-[var(--tokyo-border-cyan)]/10 hover:bg-[var(--tokyo-cyan-soft)] transition-colors">
+                  <td className="py-1.5 opacity-70">10:45:02 AM</td>
+                  <td className="py-1.5 text-[var(--tokyo-green)]">Info</td>
+                  <td className="py-1.5">Meowl Proxy Engine initialized successfully</td>
+                </tr>
+                <tr className="border-b border-[var(--tokyo-border-cyan)]/10 hover:bg-[var(--tokyo-cyan-soft)] transition-colors">
+                  <td className="py-1.5 opacity-70">10:47:12 AM</td>
+                  <td className="py-1.5 text-[var(--status-warning)]">Warning</td>
+                  <td className="py-1.5">Upstream connection timeout for API endpoints</td>
+                </tr>
+              </tbody>
+            </table>
+          </ScrollArea>
+        </div>
       </div>
 
-      <TabsContent value="status" className="flex-1 m-0 overflow-hidden outline-none data-[state=active]:flex data-[state=active]:flex-col">
-        <StatusTab />
-      </TabsContent>
-      <TabsContent value="profile" className="flex-1 m-0 overflow-hidden outline-none data-[state=active]:flex data-[state=active]:flex-col">
-        <ProfileTab />
-      </TabsContent>
-      <TabsContent value="scan" className="flex-1 m-0 overflow-hidden outline-none data-[state=active]:flex data-[state=active]:flex-col">
-        <ScanTab />
-      </TabsContent>
-    </Tabs>
+      {/* Bottom: Advisory/Issue Definitions */}
+      <div className="h-[40%] min-h-[250px] flex flex-col border border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] rounded-md overflow-hidden">
+        <div className="h-8 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-3)] flex items-center px-3 shrink-0">
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">Issue Activity</span>
+        </div>
+        <div className="flex-1 flex overflow-hidden">
+          <div className="w-[150px] border-r border-[var(--tokyo-border-cyan)] p-2">
+            <div className="flex flex-col gap-1 text-[11px]">
+              <div className="flex justify-between items-center bg-[var(--tokyo-panel)] px-2 py-1 rounded border border-red-500/30">
+                <span className="text-red-400">High</span>
+                <span>0</span>
+              </div>
+              <div className="flex justify-between items-center bg-[var(--tokyo-panel)] px-2 py-1 rounded border border-amber-500/30">
+                <span className="text-amber-400">Medium</span>
+                <span>3</span>
+              </div>
+              <div className="flex justify-between items-center bg-[var(--tokyo-panel)] px-2 py-1 rounded border border-yellow-500/30">
+                <span className="text-yellow-400">Low</span>
+                <span>12</span>
+              </div>
+              <div className="flex justify-between items-center bg-[var(--tokyo-panel)] px-2 py-1 rounded border border-[var(--tokyo-border-cyan)]">
+                <span className="text-[var(--tokyo-cyan)]/70">Information</span>
+                <span>45</span>
+              </div>
+            </div>
+          </div>
+          <ScrollArea className="flex-1">
+            <table className="w-full text-[10px] text-left">
+              <thead>
+                <tr className="border-b border-[var(--tokyo-border-cyan)]/30 text-[var(--tokyo-cyan)]/50 bg-[var(--tokyo-panel-3)]/50">
+                  <th className="font-normal py-1 px-3 w-32">Severity</th>
+                  <th className="font-normal py-1">Issue Definition</th>
+                  <th className="font-normal py-1">Host</th>
+                  <th className="font-normal py-1">Path</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-[var(--tokyo-border-cyan)]/10 hover:bg-[var(--tokyo-cyan-soft)] transition-colors cursor-pointer">
+                  <td className="py-1.5 px-3 text-amber-400 flex items-center gap-2">
+                    <div className="size-2 rounded-full bg-amber-400" />
+                    Medium
+                  </td>
+                  <td className="py-1.5">Strict-Transport-Security not enforced</td>
+                  <td className="py-1.5">api.example.com</td>
+                  <td className="py-1.5">/v1/auth</td>
+                </tr>
+                <tr className="border-b border-[var(--tokyo-border-cyan)]/10 hover:bg-[var(--tokyo-cyan-soft)] transition-colors cursor-pointer">
+                  <td className="py-1.5 px-3 text-yellow-400 flex items-center gap-2">
+                    <div className="size-2 rounded-full bg-yellow-400" />
+                    Low
+                  </td>
+                  <td className="py-1.5">Server header reveals version</td>
+                  <td className="py-1.5">example.com</td>
+                  <td className="py-1.5">/</td>
+                </tr>
+              </tbody>
+            </table>
+          </ScrollArea>
+        </div>
+      </div>
+    </div>
   )
 }

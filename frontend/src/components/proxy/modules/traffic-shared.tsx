@@ -247,27 +247,27 @@ export function ContextMenu({ ctx, onClose, selectedUids, allData }: {
 
   return (
     <div ref={ref} style={menuStyle}
-      className="relative bg-popover border border-border rounded-md shadow-2xl py-1.5">
+      className="relative bg-[var(--tokyo-panel)]/85 border border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] rounded-md shadow-[0_0_20px_rgba(0,240,255,0.1)] py-1.5 backdrop-blur-xl">
       {isBulk && (
-        <div className="px-3 py-1 mb-1 border-b border-border/40 text-[10px] text-[var(--accent)] font-mono font-bold tracking-wider">
+        <div className="px-3 py-1 mb-1 border-b border-[var(--tokyo-border-cyan)] text-[10px] text-[var(--tokyo-magenta)] font-mono font-bold tracking-wider">
           {count} items selected
         </div>
       )}
       <button onMouseEnter={() => openSub("copy")} onMouseLeave={scheduleSub}
-        className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-[12px] hover:bg-accent/70">
+        className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-[12px] hover:bg-[var(--tokyo-magenta-soft)] hover:text-[var(--tokyo-magenta)]">
         <span className="flex items-center gap-2.5"><Copy className="size-3.5" />Copy Value</span>
         <ChevronRight className="size-3.5 text-muted-foreground" />
       </button>
       {sub === "copy" && (
         <div onMouseEnter={keepSub} onMouseLeave={scheduleSub}
           style={{ position: "absolute", left: "100%", top: 0, marginLeft: 4, minWidth: 230 }}
-          className="bg-popover border border-border rounded-md shadow-2xl py-1.5 flex flex-col z-[9999]">
+          className="bg-[var(--tokyo-panel)]/85 border border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] rounded-md shadow-[0_0_20px_rgba(0,240,255,0.1)] py-1.5 flex flex-col z-[9999] backdrop-blur-xl">
           {copyItems.map((ci: any, idx: number) =>
             (ci as any).type === "separator"
               ? <div key={idx} className="h-px bg-border my-1 mx-2" />
               : <button key={(ci as any).label} onClick={() => { (ci as any).action!(); onClose() }}
-                className="w-full text-left px-3 py-1.5 text-[11px] hover:bg-accent/70 cursor-default flex items-center justify-between group">
-                <span className="flex items-center gap-2 group-hover:text-[var(--accent)] transition-colors">
+                className="w-full text-left px-3 py-1.5 text-[11px] hover:bg-[var(--tokyo-magenta-soft)] cursor-default flex items-center justify-between group">
+                <span className="flex items-center gap-2 group-hover:text-[var(--tokyo-magenta)] transition-colors">
                   {(ci as any).icon}
                   {(ci as any).label}
                 </span>
@@ -276,25 +276,25 @@ export function ContextMenu({ ctx, onClose, selectedUids, allData }: {
         </div>
       )}
       <button onMouseEnter={() => openSub("sendto")} onMouseLeave={scheduleSub}
-        className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-[12px] hover:bg-accent/70">
+        className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-[12px] hover:bg-[var(--tokyo-magenta-soft)] hover:text-[var(--tokyo-magenta)]">
         <span className="flex items-center gap-2.5"><Send className="size-3.5" />Send To</span>
         <ChevronRight className="size-3.5 text-muted-foreground" />
       </button>
       {sub === "sendto" && (
         <div onMouseEnter={keepSub} onMouseLeave={scheduleSub}
           style={{ position: "absolute", left: "100%", top: 0, marginLeft: 4, minWidth: 180 }}
-          className="bg-popover border border-border rounded-md shadow-2xl py-1.5 flex flex-col z-[9999]">
+          className="bg-[var(--tokyo-panel)]/85 border border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] rounded-md shadow-[0_0_20px_rgba(0,240,255,0.1)] py-1.5 flex flex-col z-[9999] backdrop-blur-xl">
           {sendToItems.map(si => (
             <button key={si.label} onClick={() => { si.action(); onClose() }}
-              className="w-full text-left px-4 py-1.5 text-[12px] hover:bg-accent/70 flex items-center gap-2">
+              className="w-full text-left px-4 py-1.5 text-[12px] hover:bg-[var(--tokyo-magenta-soft)] hover:text-[var(--tokyo-magenta)] flex items-center gap-2">
               {si.icon}{si.label}
             </button>
           ))}
         </div>
       )}
-      <div className="h-px bg-border my-1 mx-2" />
+      <div className="h-px bg-[var(--tokyo-border-cyan)] my-1 mx-2" />
       <button onMouseEnter={() => openSub("highlight")} onMouseLeave={scheduleSub}
-        className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-[12px] hover:bg-accent/70">
+        className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-[12px] hover:bg-[var(--tokyo-magenta-soft)] hover:text-[var(--tokyo-magenta)]">
         <span className="flex items-center gap-2.5"><Highlighter className="size-3.5 text-amber-400" />
           Highlight{isBulk ? ` (${count})` : ""}
         </span>
@@ -303,24 +303,24 @@ export function ContextMenu({ ctx, onClose, selectedUids, allData }: {
       {sub === "highlight" && (
         <div onMouseEnter={keepSub} onMouseLeave={scheduleSub}
           style={{ position: "absolute", left: "100%", top: 0, marginLeft: 4, minWidth: 150 }}
-          className="bg-popover border border-border rounded-md shadow-2xl py-1.5 flex flex-col z-[9999]">
+          className="bg-[var(--tokyo-panel)]/85 border border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] rounded-md shadow-[0_0_20px_rgba(0,240,255,0.1)] py-1.5 flex flex-col z-[9999] backdrop-blur-xl">
           {highlightColors.map(c => (
             <button key={c.label} onClick={() => doHighlight(c.color)}
-              className="w-full flex items-center gap-2.5 px-4 py-1.5 text-[12px] hover:bg-accent/70 text-left">
+              className="w-full flex items-center gap-2.5 px-4 py-1.5 text-[12px] hover:bg-[var(--tokyo-magenta-soft)] hover:text-[var(--tokyo-magenta)] text-left">
               <div className="size-2.5 rounded-full border border-white/20" style={{ backgroundColor: c.color || "transparent" }} />
               {c.label}
             </button>
           ))}
         </div>
       )}
-      <div className="h-px bg-border my-1 mx-2" />
+      <div className="h-px bg-[var(--tokyo-border-cyan)] my-1 mx-2" />
       {!isBulk && (
-        <button onClick={doResend} className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[12px] hover:bg-accent/70 text-left">
+        <button onClick={doResend} className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[12px] hover:bg-[var(--tokyo-magenta-soft)] hover:text-[var(--tokyo-magenta)] text-left">
           <Repeat2 className="size-3.5 text-emerald-400" />Resend
         </button>
       )}
       <button onClick={doDelete}
-        className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[12px] hover:bg-accent/70 text-left text-red-400">
+        className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[12px] hover:bg-[var(--tokyo-magenta-soft)] text-left text-[var(--tokyo-magenta)]">
         <Trash2 className="size-3.5" />Delete{isBulk ? ` (${count})` : ""}
       </button>
     </div>
@@ -329,9 +329,9 @@ export function ContextMenu({ ctx, onClose, selectedUids, allData }: {
 
 export function FilterPanel({ config, onChange, onClose }: { config: FilterConfig, onChange: (c: FilterConfig) => void, onClose: () => void }) {
   return (
-    <div className="w-[600px] flex flex-col pointer-events-auto bg-popover rounded-md border shadow-2xl overflow-hidden">
-      <div className="bg-muted/50 px-4 py-3 border-b flex items-center justify-between">
-        <span className="font-bold text-[11px] uppercase tracking-wider text-muted-foreground whitespace-nowrap">History Filter</span>
+    <div className="w-[600px] flex flex-col pointer-events-auto bg-[var(--tokyo-panel)]/85 text-[var(--tokyo-cyan)] rounded-md border border-[var(--tokyo-border-cyan)] shadow-[0_0_20px_rgba(0,240,255,0.1)] overflow-hidden backdrop-blur-xl">
+      <div className="bg-transparent px-4 py-3 border-b border-[var(--tokyo-border-cyan)] flex items-center justify-between">
+        <span className="font-bold text-[11px] uppercase tracking-wider text-[var(--tokyo-cyan)] whitespace-nowrap">History Filter</span>
         <div className="flex items-center gap-2">
           <Button variant={config.enabled ? "default" : "outline"} size="sm" className="h-6 text-[10px] px-3 font-bold uppercase tracking-wider" onClick={() => onChange({ ...config, enabled: !config.enabled })}>
             Filter {config.enabled ? "on" : "off"}
@@ -341,7 +341,7 @@ export function FilterPanel({ config, onChange, onClose }: { config: FilterConfi
           </Button>
         </div>
       </div>
-      <div className="p-4 grid grid-cols-4 gap-4 text-xs bg-background/50">
+      <div className="p-4 grid grid-cols-4 gap-4 text-xs bg-[var(--tokyo-panel)]">
         <div className="space-y-4">
           <div className="space-y-2">
             <h4 className="font-bold border-b border-border/50 pb-1 text-muted-foreground uppercase tracking-widest text-[9px] mb-2">Filter by request type</h4>
@@ -432,26 +432,26 @@ export function SearchSettingsPanel({ config, onChange, isFilterOnly, onFilterCh
   }
 
   return (
-    <div className="p-3 w-64 space-y-4 text-xs select-none bg-popover border rounded-md shadow-2xl overflow-hidden">
+    <div className="p-3 w-64 space-y-4 text-xs select-none bg-[var(--tokyo-panel)]/85 border border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] rounded-md shadow-[0_0_20px_rgba(0,240,255,0.1)] overflow-hidden backdrop-blur-xl">
       <div>
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 font-bold opacity-60">Search Location</p>
+        <p className="text-[10px] uppercase tracking-wider text-[var(--tokyo-magenta)] mb-2 font-bold opacity-80">Search Location</p>
         <div className="flex gap-1 flex-wrap">
           {([["ALL", "all"], ["URL", "url"], ["HEADERS", "headers"], ["BODY", "body"]] as const).map(([label, val]) => (
             <button key={val} onClick={() => toggleLocation(val)}
-              className={`px-2 py-1 rounded text-[9px] font-mono border transition-all ${config.locations.includes(val) ? "bg-primary/10 text-primary border-primary/30" : "border-border/40 hover:border-primary/30 text-muted-foreground hover:text-foreground"}`}>
+              className={`px-2 py-1 rounded text-[9px] font-mono border transition-all ${config.locations.includes(val) ? "bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-magenta)] border-[var(--tokyo-border-magenta)]" : "border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)]/60 hover:text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)]"}`}>
               {label}
             </button>
           ))}
         </div>
       </div>
       <div>
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 font-bold opacity-60">Interaction Scope</p>
+        <p className="text-[10px] uppercase tracking-wider text-[var(--tokyo-magenta)] mb-2 font-bold opacity-80">Interaction Scope</p>
         <div className="flex gap-1 flex-wrap">
           {["ALL", "REQUEST", "RESPONSE"].map(label => {
             const val = label.toLowerCase() as InteractionScope
             return (
               <button key={val} onClick={() => toggleScope(val)}
-                className={`px-2 py-1 rounded text-[9px] font-mono border transition-all ${config.interactionScopes.includes(val) ? "bg-primary/10 text-primary border-primary/30" : "border-border/40 hover:border-primary/30 text-muted-foreground hover:text-foreground"}`}>
+                className={`px-2 py-1 rounded text-[9px] font-mono border transition-all ${config.interactionScopes.includes(val) ? "bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-magenta)] border-[var(--tokyo-border-magenta)]" : "border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)]/60 hover:text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)]"}`}>
                 {label}
               </button>
             )

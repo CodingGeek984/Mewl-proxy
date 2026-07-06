@@ -1,7 +1,7 @@
 import {
     Inbox, AlertCircle, Send, ArrowRightCircle,
     ChevronDown, Power, ShieldCheck, PlayCircle, XCircle, FastForward,
-    Search, X, Settings2
+    Search, X, Settings2, Download
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
@@ -23,7 +23,7 @@ export function InterceptTabV2() {
         intercepts, isInterceptEnabled, setIsInterceptEnabled,
         sendInterceptAction,
         requestBreakpoint, setRequestBreakpoint, responseBreakpoint, setResponseBreakpoint,
-        getSetting, setSetting
+        getSetting, setSetting, sendToRepeater, sendToIterater
     } = useProxyWebsocket()
 
     const [selectedUids, setSelectedUids] = useState<Set<string>>(new Set())
@@ -50,6 +50,20 @@ export function InterceptTabV2() {
         await setSetting("follow_proxy_rules", next ? "true" : "false")
     }
 
+    const toggleRequestBreakpoint = () => {
+        const next = !requestBreakpoint
+        setRequestBreakpoint(next)
+        if (next) setIsInterceptEnabled(true)
+        else if (!responseBreakpoint) setIsInterceptEnabled(false)
+    }
+
+    const toggleResponseBreakpoint = () => {
+        const next = !responseBreakpoint
+        setResponseBreakpoint(next)
+        if (next) setIsInterceptEnabled(true)
+        else if (!requestBreakpoint) setIsInterceptEnabled(false)
+    }
+
     const { filtered, matchedIds } = useTrafficFilter(intercepts, searchActive, searchCfg, { enabled: false, reqHasResponse: false, reqHasParams: false, mimeHtml: true, mimeImages: true, mimeCss: true, mimeJson: true, mimeOther: true, status2xx: true, status3xx: true, status4xx: true, status5xx: true, methodGet: true, methodPost: true, methodPut: true, methodDelete: true, methodOptions: true, hideExtensions: "", listenerPort: "" })
     const tableData = useMemo(() => filtered, [filtered])
 
@@ -60,10 +74,21 @@ export function InterceptTabV2() {
         initialVisible: INTERCEPT_ONLY_VISIBLE
     })
 
+    const firstUid = intercepts.length > 0 ? intercepts[0]._uid : null
+    const activeUid = lastSelectedUid || (selectedUids.size > 0 ? Array.from(selectedUids)[0] : firstUid)
+
     const selectedReq = useMemo(
-        () => intercepts.find((r: TrafficEvent) => r._uid === (lastSelectedUid || Array.from(selectedUids)[0])),
-        [intercepts, lastSelectedUid, selectedUids]
+        () => activeUid ? intercepts.find((r: TrafficEvent) => r._uid === activeUid) : undefined,
+        [intercepts, activeUid]
     )
+
+    // Auto-select the first request in the queue if nothing is selected
+    useEffect(() => {
+        if (intercepts.length > 0 && selectedUids.size === 0) {
+            setSelectedUids(new Set([intercepts[0]._uid]))
+            setLastSelectedUid(intercepts[0]._uid)
+        }
+    }, [intercepts, selectedUids.size])
 
     // Search handlers (identical to HTTP History)
     const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => { if (e.key === "Enter") setSearchActive(searchRaw) }
@@ -123,6 +148,8 @@ export function InterceptTabV2() {
         setEditedRequest(null); setEditedResponse(null); setSelectedUids(new Set())
     }, [intercepts, sendInterceptAction])
 
+
+
     // Pass: forward one-by-one sequentially
     const handlePass = useCallback(async () => {
         const items = [...intercepts]
@@ -140,6 +167,25 @@ export function InterceptTabV2() {
         selectedUids.forEach(uid => sendInterceptAction('drop', uid))
         setEditedRequest(null); setEditedResponse(null)
     }, [selectedUids, sendInterceptAction])
+
+    // Keyboard Shortcuts (Ctrl+F Forward, Ctrl+D Drop)
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                if (intercepts.length > 0 && selectedUids.size > 0) {
+                    e.preventDefault()
+                    handleForward()
+                }
+            } else if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                if (intercepts.length > 0 && selectedUids.size > 0) {
+                    e.preventDefault()
+                    handleDrop()
+                }
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [handleForward, handleDrop, intercepts.length, selectedUids.size])
 
     // Drop all
     const handleDropAll = useCallback(() => {
@@ -174,30 +220,34 @@ export function InterceptTabV2() {
                 {ctxMenu && <ContextMenu ctx={ctxMenu} onClose={() => setCtxMenu(null)} selectedUids={selectedUids} allData={intercepts} />}
 
                 {/* ─── Top Action Bar ─── */}
-                <div className="flex items-center gap-1.5 border-b border-border/20 px-2 py-1.5 shrink-0 bg-muted/5 overflow-hidden select-none">
+                <div className="flex items-center gap-1.5 border-b border-[var(--tokyo-border-cyan)] px-2 py-1.5 shrink-0 bg-[var(--tokyo-panel)] overflow-hidden select-none">
                     {/* Left: Toggle Mini-Buttons */}
                     <Button
                         variant={!isInterceptEnabled ? "default" : "outline"}
-                        className={`h-8 px-4 text-xs font-bold uppercase tracking-widest gap-2 transition-all duration-300 ${!isInterceptEnabled ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-[0_0_15px_rgba(16,185,129,0.3)] border-transparent" : "bg-red-500/10 text-red-500 border-red-500/30 hover:bg-red-500/20"}`}
+                        className={`h-8 px-4 text-xs font-bold uppercase tracking-widest gap-2 transition-all duration-300 ${!isInterceptEnabled ? "bg-[var(--tokyo-green)] text-[#0a0a0f] hover:bg-[var(--tokyo-green)] shadow-[0_0_15px_rgba(0,255,102,0.3)] border-transparent" : "bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-magenta)] border-[var(--tokyo-border-magenta)] hover:bg-[var(--tokyo-magenta-soft)]"}`}
                         onClick={() => {
-                            const nextState = !isInterceptEnabled
-                            setIsInterceptEnabled(!nextState)
-                            if (!nextState) { setRequestBreakpoint(true) }
-                            else { setRequestBreakpoint(false); setResponseBreakpoint(false) }
+                            if (isInterceptEnabled) {
+                                setRequestBreakpoint(false)
+                                setResponseBreakpoint(false)
+                                setIsInterceptEnabled(false)
+                            } else {
+                                setRequestBreakpoint(true)
+                                setIsInterceptEnabled(true)
+                            }
                         }}
                     >
                         {!isInterceptEnabled ? <PlayCircle className="size-4" /> : <Power className="size-4" />}
                         {!isInterceptEnabled ? "PASS: ON" : "PASS: OFF"}
                     </Button>
 
-                    <div className="w-px h-3 bg-border/40 mx-0.5" />
+                    <div className="w-px h-3 bg-[var(--tokyo-border-cyan)] mx-0.5" />
 
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
                                 variant={requestBreakpoint ? "default" : "ghost"} size="icon"
-                                className={`size-6 shrink-0 ${requestBreakpoint ? "bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/30 border" : "text-muted-foreground hover:bg-muted/50"}`}
-                                onClick={() => setRequestBreakpoint(!requestBreakpoint)}
+                                className={`size-6 shrink-0 ${requestBreakpoint ? "bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-magenta)] hover:bg-[var(--tokyo-magenta-soft)] border-[var(--tokyo-border-magenta)] border" : "text-[var(--tokyo-cyan)]/55 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]"}`}
+                                onClick={toggleRequestBreakpoint}
                             >
                                 <Send className="size-3" />
                             </Button>
@@ -205,13 +255,24 @@ export function InterceptTabV2() {
                         <TooltipContent side="bottom" className="text-[10px]">Request Intercept</TooltipContent>
                     </Tooltip>
 
-
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant={responseBreakpoint ? "default" : "ghost"} size="icon"
+                                className={`size-6 shrink-0 ${responseBreakpoint ? "bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-magenta)] hover:bg-[var(--tokyo-magenta-soft)] border-[var(--tokyo-border-magenta)] border" : "text-[var(--tokyo-cyan)]/55 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]"}`}
+                                onClick={toggleResponseBreakpoint}
+                            >
+                                <Download className="size-3" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-[10px]">Response Intercept</TooltipContent>
+                    </Tooltip>
 
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
                                 variant={followProxyRules ? "default" : "ghost"} size="icon"
-                                className={`size-6 shrink-0 ${followProxyRules ? "bg-sky-500/10 text-accent hover:bg-sky-500/20 border-sky-500/30 border" : "text-muted-foreground hover:bg-muted/50"}`}
+                                className={`size-6 shrink-0 ${followProxyRules ? "bg-[var(--tokyo-cyan-soft)] text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)] border-[var(--tokyo-border-cyan)] border" : "text-[var(--tokyo-cyan)]/55 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]"}`}
                                 onClick={toggleFollowProxy}
                             >
                                 <ShieldCheck className="size-3.5" />
@@ -228,14 +289,14 @@ export function InterceptTabV2() {
                         <Button
                             disabled={intercepts.length === 0 || selectedUids.size === 0}
                             variant="ghost"
-                            className="h-7 px-3 text-[10px] font-bold uppercase tracking-tight text-emerald-500 hover:bg-emerald-500/10 disabled:opacity-20 rounded-r-none gap-1.5 transition-all"
+                            className="h-7 px-3 text-[10px] font-bold uppercase tracking-tight text-[var(--tokyo-green)] hover:bg-[var(--tokyo-green-soft)] disabled:opacity-20 rounded-r-none gap-1.5 transition-all"
                             onClick={handleForward}
                         >
                             <PlayCircle className="size-3.5" /> Forward
                         </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild disabled={intercepts.length === 0}>
-                                <Button disabled={intercepts.length === 0} variant="ghost" className="h-7 px-1.5 text-emerald-500 hover:bg-emerald-500/10 rounded-l-none border-l border-border/20 disabled:opacity-20">
+                                <Button disabled={intercepts.length === 0} variant="ghost" className="h-7 px-1.5 text-[var(--tokyo-green)] hover:bg-[var(--tokyo-green-soft)] rounded-l-none border-l border-[var(--tokyo-border-cyan)] disabled:opacity-20">
                                     <ChevronDown className="size-3" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -259,14 +320,14 @@ export function InterceptTabV2() {
                         <Button
                             disabled={intercepts.length === 0 || selectedUids.size === 0}
                             variant="ghost"
-                            className="h-7 px-3 text-[10px] font-bold uppercase tracking-tight text-red-500 hover:bg-red-500/10 disabled:opacity-20 rounded-r-none gap-1.5 transition-all"
+                            className="h-7 px-3 text-[10px] font-bold uppercase tracking-tight text-[var(--tokyo-magenta)] hover:bg-[var(--tokyo-magenta-soft)] disabled:opacity-20 rounded-r-none gap-1.5 transition-all"
                             onClick={handleDrop}
                         >
                             <XCircle className="size-3.5" /> Drop
                         </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild disabled={intercepts.length === 0}>
-                                <Button disabled={intercepts.length === 0} variant="ghost" className="h-7 px-1.5 text-red-500 hover:bg-red-500/10 rounded-l-none border-l border-border/20 disabled:opacity-20">
+                                <Button disabled={intercepts.length === 0} variant="ghost" className="h-7 px-1.5 text-[var(--tokyo-magenta)] hover:bg-[var(--tokyo-magenta-soft)] rounded-l-none border-l border-[var(--tokyo-border-cyan)] disabled:opacity-20">
                                     <ChevronDown className="size-3" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -281,10 +342,28 @@ export function InterceptTabV2() {
                         </DropdownMenu>
                     </div>
 
+                    <div className="flex items-center ml-2 pl-2 border-l border-[var(--tokyo-border-cyan)]">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild disabled={!selectedReq}>
+                                <Button disabled={!selectedReq} variant="ghost" className="h-7 px-3 text-[10px] font-bold uppercase tracking-tight text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)] disabled:opacity-20 gap-1.5 transition-all">
+                                    <Settings2 className="size-3.5" /> Action
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="min-w-[140px]">
+                                <DropdownMenuItem onClick={() => { if (selectedReq) sendToRepeater(selectedReq); }} className="text-[11px] gap-2">
+                                    <AlertCircle className="size-3 text-emerald-400" /> Send to Repeater
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { if (selectedReq) sendToIterater(selectedReq); }} className="text-[11px] gap-2">
+                                    <FastForward className="size-3 text-amber-400" /> Send to Iterator
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+
                     <Button
                         disabled={intercepts.length === 0}
                         variant="ghost"
-                        className="h-7 px-3 text-[10px] font-bold uppercase tracking-tight text-accent hover:bg-accent/10 disabled:opacity-20 gap-1.5 transition-all"
+                        className="h-7 px-3 text-[10px] font-bold uppercase tracking-tight text-accent hover:bg-accent/10 disabled:opacity-20 gap-1.5 transition-all ml-1"
                         onClick={handlePass}
                     >
                         <FastForward className="size-3.5" /> Pass
@@ -293,157 +372,79 @@ export function InterceptTabV2() {
 
                 {/* ─── Main Content ─── */}
                 <div className="flex-1 overflow-hidden flex flex-col min-h-0 p-2">
-                    <ResizablePanelGroup direction="horizontal" id="intercept-main-group-v2" className="flex-1 gap-2">
-                        <ResizablePanel id="intercept-queue-panel-v2" defaultSize={35} minSize={20} className="flex flex-col min-h-0 min-w-0">
-                            <CyberPanel
-                                title="Queue"
-                                icon={<Inbox className={`size-3 ${isInterceptEnabled ? "text-red-500 animate-pulse" : ""}`} />}
-                                className="h-full"
-                                actions={
-                                    <span className="text-[9px] font-mono text-muted-foreground/40 pr-1">{intercepts.length}</span>
-                                }
-                            >
-                                <div className="flex flex-col h-full overflow-hidden">
-                                    {/* Search Bar (identical to HTTP History) */}
-                                    <div className="flex items-center gap-1.5 border-b border-border/20 px-2 py-1.5 shrink-0 bg-muted/5 overflow-hidden select-none">
-                                        <div className="flex-1 max-w-2xl min-w-0 relative">
-                                            <MonoInput
-                                                icon={<Search className="size-3.5" />}
-                                                placeholder="Search"
-                                                value={searchRaw}
-                                                onChange={e => setSearchRaw(e.target.value)}
-                                                onKeyDown={handleSearchKeyDown}
-                                                className="h-7"
-                                            />
-                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-20">
-                                                {searchRaw && (
-                                                    <button onClick={clearSearch} className="text-muted-foreground hover:text-foreground p-0.5">
-                                                        <X className="size-3.5" />
-                                                    </button>
-                                                )}
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <button className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-muted/50">
-                                                            <Settings2 className="size-3.5" />
-                                                        </button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="p-0 w-auto" align="end" sideOffset={6}>
-                                                        <SearchSettingsPanel config={searchCfg} onChange={setSearchCfg} isFilterOnly={isFilterOnly} onFilterChange={setIsFilterOnly} />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {intercepts.length === 0 ? (
-                                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center select-none">
-                                            <div className="relative mb-6">
-                                                <Inbox className={`size-16 ${isInterceptEnabled ? "text-red-500/40 animate-pulse" : "text-muted-foreground/10"}`} />
-                                                {isInterceptEnabled && (
-                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                        <div className="size-2 bg-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.8)] animate-ping" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <h3 className={`text-[11px] font-black uppercase tracking-[0.3em] ${isInterceptEnabled ? "text-red-500/60" : "text-muted-foreground/20"}`}>
-                                                {isInterceptEnabled ? "Awaiting Intercept" : "Interception Idle"}
-                                            </h3>
-                                            <p className="text-[9px] mt-3 font-mono text-muted-foreground/30 max-w-[200px] leading-relaxed">
-                                                {isInterceptEnabled
-                                                    ? "Matching traffic will be paused here for review."
-                                                    : "Enable interception to start catching requests & responses."}
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <div className="flex-1 min-h-0 flex flex-col">
-                                            <TrafficTable
-                                                tableState={tableState}
-                                                containerRef={containerRef}
-                                                selectedUids={selectedUids}
-                                                matchedIds={matchedIds}
-                                                rowColors={{}}
-                                                isAnchored={true}
-                                                onRowClick={handleRowClick}
-                                                onCtxMenu={(req, e) => {
-                                                    e.preventDefault()
-                                                    setSelectedUids(prev => {
-                                                        if (!prev.has(req._uid)) {
-                                                            setLastSelectedUid(req._uid)
-                                                            return new Set([req._uid])
-                                                        }
-                                                        return prev
-                                                    })
-                                                    setCtxMenu({ req, x: e.clientX, y: e.clientY })
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </CyberPanel>
-                        </ResizablePanel>
-
-                        <ResizableHandle id="intercept-main-handle-v2" className="w-1 bg-transparent hover:bg-red-500/20 transition-colors" />
-
-                        <ResizablePanel id="intercept-inspector-panel-v2" defaultSize={65} minSize={30} className="flex flex-col min-h-0 min-w-0">
-                            <CyberPanel
-                                title={selectedReq ? (editedRequest || editedResponse ? "Inspector (Modified)" : "Inspector") : "Inspector"}
-                                icon={<AlertCircle className="size-3" />}
-                                className="h-full"
-                            >
-                                <div className="flex flex-col h-full overflow-hidden">
-                                    {selectedReq ? (
-                                        (() => {
-                                            const hasResponse = (selectedReq as any)?.response_raw && (selectedReq as any)?.response_raw !== ""
-                                            const isRequestIntercept = !hasResponse
-                                            const originalContent = isRequestIntercept
-                                                ? (selectedReq as TrafficEvent).request_raw || ""
-                                                : (selectedReq as TrafficEvent).response_raw || ""
-                                            return (
-                                                <div className="flex-1 flex flex-col overflow-hidden">
-                                                    <div className="h-8 border-b bg-card/30 flex items-center px-4 shrink-0 justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <span className={`text-[10px] font-black tracking-widest uppercase ${isRequestIntercept ? "text-[var(--accent)]" : "text-purple-400"}`}>
-                                                                {isRequestIntercept ? "REQUEST" : "RESPONSE"}
-                                                            </span>
-                                                            {(editedRequest !== null || editedResponse !== null) && (
-                                                                <span className="text-[9px] text-red-400 font-bold uppercase animate-pulse">Modified</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex-1 overflow-hidden">
-                                                        {isRequestIntercept ? (
-                                                            <Inspector
-                                                                content={editedRequest !== null ? editedRequest : originalContent}
-                                                                className="h-full"
-                                                                readOnly={false}
-                                                                onContentChange={(newContent) => setEditedRequest(newContent)}
-                                                                onDiscard={() => setEditedRequest(null)}
-                                                            />
-                                                        ) : (
-                                                            <Inspector
-                                                                content={editedResponse !== null ? editedResponse : originalContent}
-                                                                className="h-full"
-                                                                isResponse={true}
-                                                                readOnly={false}
-                                                                onContentChange={(newContent) => setEditedResponse(newContent)}
-                                                                onDiscard={() => setEditedResponse(null)}
-                                                            />
-                                                        )}
-                                                    </div>
+                    <CyberPanel
+                        title={selectedReq ? (editedRequest || editedResponse ? "Intercepted Request (Modified)" : "Intercepted Request") : "Awaiting Intercept..."}
+                        icon={<AlertCircle className={`size-3 ${isInterceptEnabled ? "text-red-500 animate-pulse" : ""}`} />}
+                        className="h-full"
+                    >
+                        <div className="flex flex-col h-full overflow-hidden">
+                            {selectedReq ? (
+                                (() => {
+                                    const hasResponse = (selectedReq as any)?.response_raw && (selectedReq as any)?.response_raw !== ""
+                                    const isRequestIntercept = !hasResponse
+                                    const originalContent = isRequestIntercept
+                                        ? (selectedReq as TrafficEvent).request_raw || ""
+                                        : (selectedReq as TrafficEvent).response_raw || ""
+                                    return (
+                                        <div className="flex-1 flex flex-col overflow-hidden">
+                                            <div className="h-8 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] flex items-center px-4 shrink-0 justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`text-[10px] font-black tracking-widest uppercase ${isRequestIntercept ? "text-[var(--tokyo-cyan)]" : "text-[var(--tokyo-magenta)]"}`}>
+                                                        {isRequestIntercept ? "REQUEST" : "RESPONSE"}
+                                                    </span>
+                                                    {(editedRequest !== null || editedResponse !== null) && (
+                                                        <span className="text-[9px] text-red-400 font-bold uppercase animate-pulse">Modified</span>
+                                                    )}
                                                 </div>
-                                            )
-                                        })()
-                                    ) : (
-                                        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground/20 select-none">
-                                            <AlertCircle className="size-16 mb-4 opacity-5" />
-                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">No Selection</h4>
-                                            <p className="text-[10px] mt-2">Select an item from the queue</p>
+                                                <div className="text-[10px] text-muted-foreground/50 font-mono">
+                                                    Queue: {intercepts.length}
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 overflow-hidden">
+                                                {isRequestIntercept ? (
+                                                    <Inspector
+                                                        content={editedRequest !== null ? editedRequest : originalContent}
+                                                        className="h-full"
+                                                        readOnly={false}
+                                                        onContentChange={(newContent) => setEditedRequest(newContent)}
+                                                        onDiscard={() => setEditedRequest(null)}
+                                                    />
+                                                ) : (
+                                                    <Inspector
+                                                        content={editedResponse !== null ? editedResponse : originalContent}
+                                                        className="h-full"
+                                                        isResponse={true}
+                                                        readOnly={false}
+                                                        onContentChange={(newContent) => setEditedResponse(newContent)}
+                                                        onDiscard={() => setEditedResponse(null)}
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
-                                    )}
+                                    )
+                                })()
+                            ) : (
+                                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center select-none bg-[var(--tokyo-panel-2)]">
+                                    <div className="relative mb-6">
+                                        <Inbox className={`size-16 ${isInterceptEnabled ? "text-red-500/40 animate-pulse" : "text-[var(--tokyo-cyan)]/10"}`} />
+                                        {isInterceptEnabled && (
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="size-2 bg-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.8)] animate-ping" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <h3 className={`text-[11px] font-black uppercase tracking-[0.3em] ${isInterceptEnabled ? "text-red-500/60" : "text-[var(--tokyo-cyan)]/20"}`}>
+                                        {isInterceptEnabled ? "Awaiting Intercept" : "Interception Idle"}
+                                    </h3>
+                                    <p className="text-[9px] mt-3 font-mono text-[var(--tokyo-cyan)]/30 max-w-[200px] leading-relaxed">
+                                        {isInterceptEnabled
+                                            ? "Matching traffic will be paused here for review."
+                                            : "Enable interception to start catching requests & responses."}
+                                    </p>
                                 </div>
-                            </CyberPanel>
-                        </ResizablePanel>
-                    </ResizablePanelGroup>
+                            )}
+                        </div>
+                    </CyberPanel>
                 </div>
             </TooltipProvider>
         </div>

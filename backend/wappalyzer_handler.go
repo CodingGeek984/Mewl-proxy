@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mamamialezatoz/go-wappalyzer/pkg/wappalyzer"
+	wappalyzer "github.com/projectdiscovery/wappalyzergo"
 )
 
 // WappalyzerTech represents a detected technology
@@ -71,15 +71,15 @@ func HandleWappalyzer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Run detection — FingerprintWithCategories returns map[string][]string
-	techWithCats := wapClient.FingerprintWithCategories(resp.Header, body)
+	// Run detection
+	techWithInfo := wapClient.FingerprintWithInfo(resp.Header, body)
 
 	// Build response
-	techs := make([]WappalyzerTech, 0, len(techWithCats))
-	for name, cats := range techWithCats {
+	techs := make([]WappalyzerTech, 0, len(techWithInfo))
+	for name, info := range techWithInfo {
 		techs = append(techs, WappalyzerTech{
 			Name:       name,
-			Categories: cats,
+			Categories: info.Categories,
 		})
 	}
 

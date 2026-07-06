@@ -43,9 +43,9 @@ export function useProxyIntercepts(wsRef: React.RefObject<WebSocket | null>) {
     // Sync breakpoint states with interception
     useEffect(() => {
         if (!requestBreakpoint && !responseBreakpoint && isInterceptEnabled) {
-            setIsInterceptEnabled(false)
+            handleSetIsInterceptEnabled(false)
         }
-    }, [requestBreakpoint, responseBreakpoint, isInterceptEnabled])
+    }, [requestBreakpoint, responseBreakpoint, isInterceptEnabled, handleSetIsInterceptEnabled])
 
     return {
         isInterceptEnabled,

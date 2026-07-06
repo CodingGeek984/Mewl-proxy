@@ -54,6 +54,10 @@ export function ResumeFuzzer() {
   return window['go']['backend']['App']['ResumeFuzzer']();
 }
 
+export function SaveCustomScripts(arg1) {
+  return window['go']['backend']['App']['SaveCustomScripts'](arg1);
+}
+
 export function SaveNetworkConfig(arg1) {
   return window['go']['backend']['App']['SaveNetworkConfig'](arg1);
 }

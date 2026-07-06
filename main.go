@@ -116,6 +116,13 @@ func main() {
 		mux.HandleFunc("/api/resend", backend.HandleResend)
 		mux.HandleFunc("/api/wappalyzer", backend.HandleWappalyzer)
 
+		mux.HandleFunc("/api/cert", func(w http.ResponseWriter, r *http.Request) {
+			certData := backend.GetCACert()
+			w.Header().Set("Content-Type", "application/x-x509-ca-cert")
+			w.Header().Set("Content-Disposition", `attachment; filename="meowl-ca.pem"`)
+			w.Write([]byte(certData))
+		})
+
 		mux.HandleFunc("/api/restart-proxy", func(w http.ResponseWriter, r *http.Request) {
 			if r.Method != "POST" {
 				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

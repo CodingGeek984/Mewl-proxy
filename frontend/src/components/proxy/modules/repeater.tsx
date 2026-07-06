@@ -200,6 +200,28 @@ export function RepeaterModule() {
   const activeSandbox = sandboxes.find((s) => s.id === activeId)
   const currentRequest = editedRequests[activeId] || ""
 
+  const currentMethod = useMemo(() => {
+    const lines = currentRequest.split("\n")
+    if (lines.length > 0) {
+      const parts = lines[0].split(" ")
+      if (parts.length > 0) return parts[0] || "GET"
+    }
+    return "GET"
+  }, [currentRequest])
+
+  function changeMethod(newMethod: string) {
+    if (!activeId) return
+    const lines = currentRequest.split("\n")
+    if (lines.length > 0) {
+      const parts = lines[0].split(" ")
+      if (parts.length > 0) {
+        parts[0] = newMethod
+        lines[0] = parts.join(" ")
+        setEditedRequests(prev => ({ ...prev, [activeId]: lines.join("\n") }))
+      }
+    }
+  }
+
   // ─── Grouping Helpers ──────────────────────────────────────────
 
   const groupedSandboxes = useMemo(() => {
@@ -661,478 +683,219 @@ export function RepeaterModule() {
   const responseSize = activeSandbox?.response ? new Blob([activeSandbox.response]).size : 0
 
   return (
-    <div id="repeater-module-container" className="flex h-full p-2 overflow-hidden gap-2">
-      <ResizablePanelGroup direction="horizontal" className="flex-1 gap-2">
-        {/* Sandboxes sidebar */}
-        <ResizablePanel defaultSize={20} minSize={15} className="flex flex-col">
-          <CyberPanel
-            title="Sandboxes"
-            icon={<Terminal className="size-3" />}
-            className="h-full"
-            actions={
-              <div className="flex items-center gap-0.5">
-                <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-[var(--accent)]" onClick={addSandbox}>
-                  <Plus className="size-3.5" />
-                </Button>
-              </div>
-            }
-          >
-            <ScrollArea className="h-full">
-              <div className="flex flex-col py-1">
-                {Object.entries(groupedSandboxes).map(([group, groupSandboxes]) => (
-                  <div key={group} className="flex flex-col mb-1">
-                    {/* Group Header */}
-                    {allGroups.length > 1 && (
-                      <div 
-                        className="flex items-center gap-1.5 px-3 py-1 bg-muted/20 border-y border-border/5 cursor-pointer hover:bg-muted/30 transition-all select-none group"
-                        onClick={() => toggleGroup(group)}
-                      >
-                        <ChevronDownIcon className={`size-3 text-muted-foreground/30 transition-transform duration-200 ${collapsedGroups.has(group) ? "-rotate-90" : ""}`} />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">{group}</span>
-                        <span className="text-[9px] font-mono text-muted-foreground/20 ml-auto">{groupSandboxes.length}</span>
-                      </div>
-                    )}
-                    
-                    {!collapsedGroups.has(group) && groupSandboxes.map((sb) => (
-                      <ContextMenu key={sb.id}>
-                        <ContextMenuTrigger asChild>
-                          <div
-                            draggable
-                            onDragStart={() => handleDragStart(sb.id)}
-                            onDragOver={(e) => handleDragOver(e, sb.id)}
-                            onDrop={handleDrop}
-                            onDragEnd={handleDrop}
-                            role="button"
-                            tabIndex={0}
-                            className={`group/sb flex flex-col gap-0.5 px-3 py-2 text-left transition-all cursor-pointer hover:bg-accent/40 relative 
-                              ${activeId === sb.id ? "border-r-2 border-sky-500 shadow-[inset_0_0_20px_rgba(56,189,248,0.05)]" : ""} 
-                              ${selectedIds.has(sb.id) ? "bg-sky-500/10" : ""}
-                              ${draggedId === sb.id ? "opacity-30 scale-95" : "opacity-100"}`}
-                            onClick={(e) => handleClickSandbox(e, sb.id)}
-                            onContextMenu={() => handleContextMenu(sb.id)}
-                          >
-                            {/* Color Bar */}
-                            {sb.color && sb.color !== "transparent" && (
-                              <div className="absolute left-0 top-0 bottom-0 w-0.5" style={{ backgroundColor: sb.color }} />
-                            )}
+    <div id="repeater-module-container" className="flex h-full overflow-hidden p-2">
+      <CyberPanel
+        title="Repeater"
+        icon={<Repeat2 className="size-3" />}
+        className="flex-1 min-w-0"
+      >
+        <div className="flex flex-col h-full overflow-hidden">
+          {/* TOP TABS ROW */}
+          <div className="flex items-center bg-[var(--tokyo-panel-2)] h-9 border-b border-[var(--tokyo-border-cyan)] shrink-0 overflow-x-auto no-scrollbar px-1">
+            {sandboxes.map((sb, idx) => (
+              <ContextMenu key={sb.id}>
+                <ContextMenuTrigger asChild>
+                  <button
+                    onClick={(e) => handleClickSandbox(e, sb.id)}
+                    onContextMenu={() => handleContextMenu(sb.id)}
+                    className={`flex items-center gap-2 px-3 h-7 mx-0.5 rounded-t-md text-[10px] font-bold uppercase tracking-widest transition-all ${
+                      activeId === sb.id
+                        ? "bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-magenta)] border border-[var(--tokyo-border-magenta)] border-b-0"
+                        : "text-[var(--tokyo-cyan)]/50 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]"
+                    }`}
+                  >
+                    <span className="opacity-50">[{idx + 1}]</span>
+                    <div className="max-w-[100px] truncate" onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      const newName = prompt("Rename tab:", sb.name);
+                      if (newName) renameSandbox(sb.id, newName);
+                    }}>
+                      {sb.name}
+                    </div>
+                    <X className="size-3 opacity-30 hover:opacity-100 hover:text-red-400" onClick={(e) => { e.stopPropagation(); deleteSandbox(sb.id); }} />
+                  </button>
+                </ContextMenuTrigger>
+                <ContextMenuContent className="text-[11px]">
+                  <ContextMenuItem onClick={() => duplicateSandbox(sb.id)}>Duplicate</ContextMenuItem>
+                  <ContextMenuItem onClick={() => {
+                    const newName = prompt("Rename tab:", sb.name);
+                    if (newName) renameSandbox(sb.id, newName);
+                  }}>Rename</ContextMenuItem>
+                  <ContextMenuItem onClick={() => deleteSandbox(sb.id)} className="text-red-400">Close</ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            ))}
+            <Button variant="ghost" size="icon" className="size-7 ml-1 text-[var(--tokyo-cyan)]/50 hover:text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)]" onClick={addSandbox}>
+              <Plus className="size-4" />
+            </Button>
+          </div>
 
-                            <div className="flex items-center justify-between gap-2 min-w-0">
-                              <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                <GripVertical className="size-3 text-muted-foreground/10 group-hover/sb:text-muted-foreground/30 transition-colors shrink-0 cursor-grab" />
-                                {sb.color && sb.color !== "transparent" && (
-                                  <div className="size-1.5 rounded-full shrink-0" style={{ backgroundColor: sb.color }} />
-                                )}
-                                <div className="truncate flex-1 min-w-0">
-                                  <EditableName
-                                    name={sb.name}
-                                    onRename={(newName) => renameSandbox(sb.id, newName)}
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-0.5 opacity-0 group-hover/sb:opacity-100 transition-opacity shrink-0">
-                                {sb.loading && <Loader2 className="size-3 animate-spin text-[var(--accent)]" />}
-                                <Button variant="ghost" size="icon" className="size-5 text-muted-foreground/40 hover:text-[var(--accent)]" onClick={(e) => { e.stopPropagation(); duplicateSandbox(sb.id) }}>
-                                  <Copy className="size-2.5" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="size-5 text-muted-foreground/40 hover:text-red-400" onClick={(e) => { e.stopPropagation(); deleteSandbox(sb.id) }}>
-                                  <Trash2 className="size-2.5" />
-                                </Button>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 pl-4 ml-0.5">
-                              <span className={`text-[10px] font-mono font-bold shrink-0 ${getMethodClass(sb.method)}`}>{sb.method}</span>
-                              <span className="text-[10px] font-mono text-muted-foreground/60 truncate tracking-tighter flex-1">{sb.host}</span>
-                              {sb.status > 0 && (
-                                <Badge variant="outline" className={`text-[8px] px-1 py-0 ml-auto shrink-0 ${getStatusClass(sb.status)}`}>{sb.status}</Badge>
-                              )}
-                            </div>
-                          </div>
-                        </ContextMenuTrigger>
-                        <ContextMenuContent className="w-48 text-[11px]">
-                          <ContextMenuLabel className="text-[10px] uppercase tracking-widest opacity-50">
-                            SELECTED {selectedIds.size > 1 ? `(${selectedIds.size})` : ''}
-                          </ContextMenuLabel>
-                          <ContextMenuSeparator />
-                          <ContextMenuSub>
-                            <ContextMenuSubTrigger className="gap-2">
-                              <Copy className="size-3.5" /> Copy Value
-                            </ContextMenuSubTrigger>
-                            <ContextMenuPortal>
-                              <ContextMenuSubContent className="text-[11px] min-w-[200px]">
-                                {copyItems.map((ci: any, idx: number) => 
-                                  ci.type === "separator" 
-                                    ? <ContextMenuSeparator key={idx} />
-                                    : (
-                                      <ContextMenuItem key={idx} onClick={ci.action} className="gap-2">
-                                        {ci.icon}
-                                        {ci.label}
-                                      </ContextMenuItem>
-                                    )
-                                )}
-                              </ContextMenuSubContent>
-                            </ContextMenuPortal>
-                          </ContextMenuSub>
-                          <ContextMenuSeparator />
-
-                          <ContextMenuItem onClick={() => doSendToIterater()} className="gap-2"><RefreshCcw className="size-3.5 text-[var(--accent)]" /> Send to Iterater</ContextMenuItem>
-
-                          <ContextMenuSeparator />
-
-                          <ContextMenuSub>
-                            <ContextMenuSubTrigger className="gap-2"><FolderPlus className="size-3.5" /> Move to Group</ContextMenuSubTrigger>
-                            <ContextMenuPortal>
-                              <ContextMenuSubContent className="text-[11px] min-w-[150px]">
-                                {allGroups.map(g => (
-                                  <ContextMenuItem key={g} onClick={() => doBulkGroup(g)} className="gap-2">
-                                    <Hash className="size-3 text-muted-foreground/50" /> {g}
-                                  </ContextMenuItem>
-                                ))}
-                                <ContextMenuSeparator />
-                                <ContextMenuItem onClick={() => {
-                                  let g = prompt("New group name:")
-                                  if (g) doBulkGroup(g)
-                                }} className="gap-2">
-                                  <Plus className="size-3" /> New Group...
-                                </ContextMenuItem>
-                                <ContextMenuSeparator />
-                                <ContextMenuItem onClick={() => doBulkGroup("")}>Remove from Group</ContextMenuItem>
-                              </ContextMenuSubContent>
-                            </ContextMenuPortal>
-                          </ContextMenuSub>
-
-                          <ContextMenuSub>
-                            <ContextMenuSubTrigger className="gap-2"><Palette className="size-3.5" /> Change Color</ContextMenuSubTrigger>
-                            <ContextMenuPortal>
-                              <ContextMenuSubContent className="text-[11px] min-w-[120px]">
-                                {PRESET_COLORS.map(c => (
-                                  <ContextMenuItem key={c.name} onClick={() => doBulkColor(c.value)} className="gap-2">
-                                    <div className="size-2 rounded-full border border-border/20" style={{ backgroundColor: c.value }} /> {c.name}
-                                  </ContextMenuItem>
-                                ))}
-                              </ContextMenuSubContent>
-                            </ContextMenuPortal>
-                          </ContextMenuSub>
-
-                          <ContextMenuSeparator />
-                          <ContextMenuItem onClick={() => selectedIds.forEach(id => duplicateSandbox(id))} className="gap-2"><Copy className="size-3.5" /> Duplicate</ContextMenuItem>
-                          <ContextMenuItem onClick={() => selectedIds.forEach(id => deleteSandbox(id))} className="gap-2 text-red-400"><Trash2 className="size-3.5" /> Delete</ContextMenuItem>
-                        </ContextMenuContent>
-                      </ContextMenu>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CyberPanel>
-        </ResizablePanel>
-
-        <ResizableHandle className="w-1 bg-transparent hover:bg-sky-500/20 transition-colors" />
-
-        {/* Main area */}
-        <ResizablePanel defaultSize={80} minSize={30} className="flex flex-col">
           {activeSandbox ? (
-            <CyberPanel
-              title={activeSandbox.name}
-              icon={<Repeat2 className="size-3" />}
-              className="h-full"
-              actions={
-                <div className="flex items-center gap-2 pr-1">
-                  {/* Response Stats (Enlarged) */}
-                  {activeSandbox.status > 0 && (
-                    <div className="flex items-center gap-2 bg-background/50 border border-border/20 rounded-md px-2 h-7 font-mono animate-in fade-in slide-in-from-right-2 duration-300">
-                      <div className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[11px] font-bold ${getStatusClass(activeSandbox.status)} bg-opacity-10 border border-current border-opacity-20`}>
-                        <Zap className="size-3" />
-                        {activeSandbox.status}
+            <div className="flex flex-col h-full overflow-hidden">
+              {/* TOOLBAR ROW */}
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--tokyo-panel)] border-b border-[var(--tokyo-border-cyan)]/50 shrink-0 select-none overflow-x-auto no-scrollbar">
+                
+                {/* Send Button */}
+                <Button
+                  variant="default"
+                  className="h-7 px-4 bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-magenta)] hover:bg-[var(--tokyo-magenta)] hover:text-white border border-[var(--tokyo-border-magenta)] disabled:opacity-30 font-black uppercase tracking-[0.1em] text-[10px] transition-all shadow-[0_0_10px_rgba(255,0,170,0.2)] active:scale-95 group/send"
+                  onClick={handleSend}
+                  disabled={activeSandbox.loading}
+                >
+                  {activeSandbox.loading ? <Loader2 className="size-3 animate-spin mr-1.5" /> : <Send className="size-3 mr-1.5 group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5 transition-transform" />}
+                  SEND
+                </Button>
+                
+                <div className="w-px h-5 bg-[var(--tokyo-border-cyan)]/50 mx-1 shrink-0" />
+
+                {/* Target Field & HTTP Version */}
+                <div className="flex items-center gap-1 bg-[var(--tokyo-panel-2)] border border-[var(--tokyo-border-cyan)]/50 rounded-md p-0.5 h-7">
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className={`size-5 flex items-center justify-center rounded transition-colors ${targetTls ? 'text-[var(--tokyo-green)] bg-[var(--tokyo-green-soft)]' : 'text-amber-400 bg-amber-500/10'}`} onClick={() => {
+                          setSandboxes(prev => prev.map(sb => sb.id === activeId ? { ...sb, tls: !sb.tls } : sb));
+                        }}>
+                          {targetTls ? <Lock className="size-3" /> : <Unlock className="size-3" />}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="text-[10px]">{targetTls ? "HTTPS Enabled (Click to toggle)" : "HTTP Plaintext (Click to toggle)"}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className={`h-5 px-1.5 text-[10px] font-bold ${getMethodClass(currentMethod)} bg-opacity-10 hover:bg-opacity-20 gap-1 flex items-center`}>
+                        {currentMethod}
+                        <ChevronDownIcon className="size-2.5 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="text-[10px] min-w-[100px] border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)]">
+                      <DropdownMenuLabel className="p-1 uppercase tracking-widest text-[9px] opacity-50 text-[var(--tokyo-cyan)]">Method</DropdownMenuLabel>
+                      {["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"].map(m => (
+                        <DropdownMenuItem key={m} onClick={() => changeMethod(m)} className={`gap-2 ${currentMethod === m ? "text-[var(--tokyo-magenta)] bg-[var(--tokyo-magenta-soft)]" : "text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)]"}`}>
+                          {currentMethod === m && <Check className="size-3" />}
+                          <span className={`${getMethodClass(m)} font-bold`}>{m}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <div className="w-px h-3 bg-[var(--tokyo-border-cyan)]/50 mx-0.5" />
+
+                  <MonoInput
+                    value={targetHost}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const val = e.target.value
+                      setSandboxes(prev => prev.map(sb => sb.id === activeId ? { ...sb, host: val } : sb))
+                    }}
+                    className="h-5 w-[180px] bg-transparent border-0 focus-visible:ring-0 text-[10px] font-bold tracking-tight text-[var(--tokyo-cyan)] placeholder:text-[var(--tokyo-cyan)]/30"
+                    placeholder="host:port (e.g. 192.168.1.1:8080)"
+                  />
+
+                  <div className="w-px h-3 bg-[var(--tokyo-border-cyan)]/50 mx-0.5" />
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[9px] font-mono text-[var(--tokyo-cyan)]/70 hover:text-[var(--tokyo-cyan)] gap-1 flex items-center">
+                        {httpVersion}
+                        <ChevronDownIcon className="size-2.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="text-[10px] min-w-[100px] border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)]">
+                      <DropdownMenuLabel className="p-1 uppercase tracking-widest text-[9px] opacity-50 text-[var(--tokyo-cyan)]">HTTP Version</DropdownMenuLabel>
+                      {HTTP_VERSIONS.map(v => (
+                        <DropdownMenuItem key={v} onClick={() => setHttpVersion(v)} className={`gap-2 ${httpVersion === v ? "text-[var(--tokyo-magenta)] bg-[var(--tokyo-magenta-soft)]" : "text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)]"}`}>
+                          {httpVersion === v && <Check className="size-3" />}
+                          {v}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                <div className="w-px h-5 bg-[var(--tokyo-border-cyan)]/50 mx-1 shrink-0" />
+
+                {/* Response Stats */}
+                {activeSandbox.status > 0 && (
+                  <div className="flex items-center gap-2 bg-[var(--tokyo-panel-2)] border border-[var(--tokyo-border-cyan)]/50 rounded-md px-2 h-7 font-mono">
+                    <div className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold ${getStatusClass(activeSandbox.status)} bg-opacity-10`}>
+                      {activeSandbox.status}
+                    </div>
+                    <div className="flex items-center gap-2 text-[9px] text-[var(--tokyo-cyan)]/70">
+                      <span className="flex items-center gap-1"><RotateCw className="size-2.5 text-[var(--tokyo-magenta)]" /> {activeSandbox.time}ms</span>
+                      <span className="flex items-center gap-1 font-bold"><Hash className="size-2.5 text-[var(--tokyo-green)]" /> {formatBytes(responseSize)}</span>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="ml-auto flex items-center gap-1">
+                  <TooltipProvider delayDuration={400}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="size-6 text-[var(--tokyo-cyan)]/50 hover:text-[var(--tokyo-cyan)]" onClick={() => setLayout(layout === "horizontal" ? "vertical" : "horizontal")}>
+                          {layout === "horizontal" ? <FlipVertical className="size-3.5 rotate-90" /> : <FlipVertical className="size-3.5" />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="text-[10px]">Toggle Layout</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+
+              <ResizablePanelGroup direction={layout === "vertical" ? "horizontal" : "vertical"} className="flex-1">
+                {/* Request panel */}
+                <ResizablePanel defaultSize={50} minSize={20} className="flex flex-col min-h-0 min-w-0">
+                  <Inspector
+                    content={currentRequest}
+                    className="flex-1"
+                    label="Request"
+                    readOnly={false}
+                    onContentChange={(val) => {
+                      setEditedRequests((prev) => ({ ...prev, [activeId]: val }))
+                    }}
+                  />
+                </ResizablePanel>
+
+                <ResizableHandle className={layout === "vertical"
+                  ? "w-1.5 bg-[var(--tokyo-border-cyan)] hover:bg-[var(--tokyo-cyan)] transition-colors z-10 cursor-col-resize relative flex items-center justify-center after:absolute after:inset-y-0 after:-left-1 after:-right-1"
+                  : "h-1.5 bg-[var(--tokyo-border-cyan)] hover:bg-[var(--tokyo-cyan)] transition-colors z-10 cursor-row-resize relative flex items-center justify-center after:absolute after:inset-x-0 after:-top-1 after:-bottom-1"
+                }
+                />
+
+                {/* Response panel */}
+                <ResizablePanel defaultSize={50} minSize={20} className="flex flex-col min-h-0 min-w-0">
+                  {activeSandbox.response ? (
+                    <Inspector
+                      content={activeSandbox.response}
+                      className="flex-1"
+                      label="Response"
+                      isResponse={activeSandbox.status > 0}
+                    />
+                  ) : (
+                    <div className="flex h-full flex-col">
+                      <div className="flex items-center h-8 border-b border-[var(--tokyo-border-cyan)] px-4 bg-[var(--tokyo-panel-2)] shrink-0">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--tokyo-cyan)]/40">Response</span>
                       </div>
-                      <div className="flex flex-col justify-center -space-y-1">
-                        <div className="text-[9px] text-muted-foreground/60 flex items-center gap-1 italic">
-                          <RotateCw className="size-2.5" /> {activeSandbox.time}ms
-                        </div>
-                        <div className="text-[9px] text-muted-foreground/40 flex items-center gap-1 font-bold">
-                          <Hash className="size-2.5" /> {formatBytes(responseSize)}
+                      <div className="flex flex-1 items-center justify-center text-[var(--tokyo-cyan)]/30 bg-transparent">
+                        <div className="text-center opacity-50">
+                          <Send className="mx-auto mb-2 size-8 text-[var(--tokyo-cyan)]" />
+                          <p className="text-[10px] font-mono uppercase tracking-widest">Click SEND to see the response</p>
                         </div>
                       </div>
                     </div>
                   )}
-
-                  <div className="w-px h-5 bg-border/20 mx-1 shrink-0" />
-
-                  {/* Target Field & HTTP Version */}
-                  <div className="flex items-center gap-1 bg-muted/20 border border-border/10 rounded-md p-0.5 h-8">
-                    <TooltipProvider delayDuration={200}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className={`size-5 flex items-center justify-center rounded transition-colors ${targetTls ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10'}`}>
-                            {targetTls ? <Lock className="size-3" /> : <Unlock className="size-3" />}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">{targetTls ? "HTTPS Enabled" : "HTTP Plaintext"}</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    <MonoInput
-                      value={targetHost}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        const val = e.target.value
-                        setSandboxes(prev => prev.map(sb => sb.id === activeId ? { ...sb, host: val } : sb))
-                      }}
-                      className="h-6 w-[180px] bg-transparent border-0 focus-visible:ring-0 text-[10px] font-bold tracking-tight text-[var(--accent)] placeholder:text-muted-foreground/20"
-                      placeholder="host:port (e.g. 192.168.1.1:8080)"
-                    />
-
-                    <div className="w-px h-3 bg-border/20 mx-0.5" />
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[9px] font-mono text-muted-foreground/60 hover:text-[var(--accent)] gap-1 flex items-center">
-                          {httpVersion}
-                          <ChevronDownIcon className="size-2.5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="text-[10px] min-w-[100px]">
-                        <DropdownMenuLabel className="p-1 uppercase tracking-widest text-[9px] opacity-50">HTTP Version</DropdownMenuLabel>
-                        {HTTP_VERSIONS.map(v => (
-                          <DropdownMenuItem key={v} onClick={() => setHttpVersion(v)} className={`gap-2 ${httpVersion === v ? "text-[var(--accent)] bg-sky-500/5" : ""}`}>
-                            {httpVersion === v && <Check className="size-3" />}
-                            {v}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  <div className="w-px h-5 bg-border/20 mx-1 shrink-0" />
-
-                  {/* History navigation (compact) */}
-                  <div className="flex items-center gap-0.5 bg-muted/10 rounded-md p-0.5 border border-border/5">
-                    <Button variant="ghost" size="icon" className="size-6 text-muted-foreground/50 hover:text-[var(--accent)] disabled:opacity-10" disabled={!canGoBack} onClick={() => navigateHistory("back")}>
-                      <ChevronLeft className="size-3.5" />
-                    </Button>
-
-                    {historyLength > 0 && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[9px] font-mono text-muted-foreground/40 hover:text-[var(--accent)] tabular-nums">
-                            {historyIdx + 1}/{historyLength}
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="center" className="max-h-64 overflow-auto w-56 text-[10px]">
-                          {(activeSandbox.history || []).map((entry, i) => (
-                            <DropdownMenuItem key={i} className={`font-mono gap-2 ${i === historyIdx ? 'bg-sky-500/10 text-[var(--accent)]' : ''}`} onClick={() => jumpToHistory(i)}>
-                              <span className="text-muted-foreground/40 w-4 text-right">#{i + 1}</span>
-                              <span className={getStatusClass(entry.status)}>{entry.status || "ERR"}</span>
-                              <span className="text-muted-foreground/40 shrink-0">{entry.time}ms</span>
-                              <span className="text-muted-foreground/20 ml-auto tabular-nums truncate">{new Date(entry.timestamp).toLocaleTimeString()}</span>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-
-                    <Button variant="ghost" size="icon" className="size-6 text-muted-foreground/50 hover:text-[var(--accent)] disabled:opacity-10" disabled={!canGoForward} onClick={() => navigateHistory("forward")}>
-                      <ChevronRight className="size-3.5" />
-                    </Button>
-                  </div>
-
-                  <div className="w-px h-5 bg-border/20 mx-1 shrink-0" />
-
-                  {/* Send button */}
-                  <Button
-                    variant="default"
-                    className="h-8 px-5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/40 disabled:opacity-30 font-black uppercase tracking-[0.1em] text-[11px] transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)] active:scale-95 group/send"
-                    onClick={handleSend}
-                    disabled={activeSandbox.loading}
-                  >
-                    {activeSandbox.loading ? <Loader2 className="size-4 animate-spin mr-2" /> : <Send className="size-4 mr-2 group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5 transition-transform" />}
-                    SEND
-                  </Button>
-                </div>
-              }
-            >
-              <div className="flex flex-col h-full overflow-hidden">
-                {/* TOOLBAR ROW (Mini buttons) */}
-                <div className="flex items-center gap-1 px-3 py-1 bg-background/40 backdrop-blur-sm border-b border-border/20 shrink-0 select-none overflow-x-auto no-scrollbar">
-                  <div className="flex items-center gap-1 py-0.5 px-1 bg-muted/5 rounded-md border border-border/5">
-                    <TooltipProvider delayDuration={400}>
-                      {/* Content-Length */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className={`size-6 rounded ${updateContentLength ? 'text-[var(--accent)] bg-sky-500/10' : 'text-muted-foreground/30 hover:text-muted-foreground/80'}`}
-                            onClick={() => setUpdateContentLength(!updateContentLength)}
-                          >
-                            <ALargeSmall className="size-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Auto Content-Length Update</TooltipContent>
-                      </Tooltip>
-
-                      {/* Redirections */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className={`size-6 rounded ${followRedirections ? 'text-emerald-400 bg-emerald-500/10' : 'text-muted-foreground/30 hover:text-muted-foreground/80'}`}
-                            onClick={() => setFollowRedirections(!followRedirections)}
-                          >
-                            <ArrowRightCircle className="size-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Follow Redirections (3xx)</TooltipContent>
-                      </Tooltip>
-
-                      {/* Cookies */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className={`size-6 rounded ${storeCookie ? 'text-amber-400 bg-amber-500/10' : 'text-muted-foreground/30 hover:text-muted-foreground/80'}`}
-                            onClick={() => setStoreCookie(!storeCookie)}
-                          >
-                            <Cookie className="size-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Store Cookie</TooltipContent>
-                      </Tooltip>
-
-                      {/* Update Host */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className={`size-6 rounded ${updateHostHeader ? 'text-purple-400 bg-purple-500/10' : 'text-muted-foreground/30 hover:text-muted-foreground/80'}`}
-                            onClick={() => setUpdateHostHeader(!updateHostHeader)}
-                          >
-                            <Globe2 className="size-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Update Host Header</TooltipContent>
-                      </Tooltip>
-
-                      <div className="w-px h-4 bg-border/20 mx-0.5" />
-
-                      {/* Lowercase Headers */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className={`size-6 rounded ${lowercaseHeaders ? 'text-pink-400 bg-pink-500/10' : 'text-muted-foreground/30 hover:text-muted-foreground/80'}`}
-                            onClick={() => setLowercaseHeaders(!lowercaseHeaders)}
-                          >
-                            <ALargeSmall className="size-3.5 lowercase" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Lowercase Header Names</TooltipContent>
-                      </Tooltip>
-
-                      {/* Anti-CSRF */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className={`size-6 rounded ${restoreAntiCsrf ? 'text-indigo-400 bg-indigo-500/10' : 'text-muted-foreground/30 hover:text-muted-foreground/80'}`}
-                            onClick={() => setRestoreAntiCsrf(!restoreAntiCsrf)}
-                          >
-                            <ShieldCheck className="size-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Restore Anti-CSRF Tokens</TooltipContent>
-                      </Tooltip>
-
-                      {/* Auto Decode */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className={`size-6 rounded ${autoDecode ? 'text-[var(--accent)] bg-sky-500/10' : 'text-muted-foreground/30 hover:text-muted-foreground/80'}`}
-                            onClick={() => setAutoDecode(!autoDecode)}
-                          >
-                            <Zap className="size-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Automatic Decode (URL, Base64, etc.)</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-
-                  <div className="ml-auto flex items-center gap-1">
-                    <TooltipProvider delayDuration={400}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="size-6 text-muted-foreground/30 hover:text-[var(--accent)]" onClick={() => setLayout(layout === "horizontal" ? "vertical" : "horizontal")}>
-                            {layout === "horizontal" ? <FlipVertical className="size-3.5 rotate-90" /> : <FlipVertical className="size-3.5" />}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="text-[10px]">Toggle Layout</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <div className="w-px h-4 bg-border/20 mx-1" />
-                    <span className="text-[9px] font-mono text-muted-foreground/40 uppercase tracking-widest px-1">Repeater 2.0</span>
-                  </div>
-                </div>
-
-                <ResizablePanelGroup direction={layout === "vertical" ? "horizontal" : "vertical"} className="flex-1">
-                  {/* Request panel */}
-                  <ResizablePanel defaultSize={50} minSize={20} className="flex flex-col min-h-0 min-w-0">
-                    <Inspector
-                      content={currentRequest}
-                      className="flex-1"
-                      label="Request"
-                      readOnly={false}
-                      onContentChange={(val) => {
-                        setEditedRequests((prev) => ({ ...prev, [activeId]: val }))
-                      }}
-                    />
-                  </ResizablePanel>
-
-                  <ResizableHandle className={layout === "vertical"
-                    ? "w-1.5 bg-border/30 hover:bg-sky-500/50 transition-colors z-10 cursor-col-resize relative flex items-center justify-center after:absolute after:inset-y-0 after:-left-1 after:-right-1"
-                    : "h-1.5 bg-border/30 hover:bg-sky-500/50 transition-colors z-10 cursor-row-resize relative flex items-center justify-center after:absolute after:inset-x-0 after:-top-1 after:-bottom-1"
-                  }
-                  />
-
-                  {/* Response panel */}
-                  <ResizablePanel defaultSize={50} minSize={20} className="flex flex-col min-h-0 min-w-0">
-                    {activeSandbox.response ? (
-                      <Inspector
-                        content={activeSandbox.response}
-                        className="flex-1"
-                        label="Response"
-                        isResponse={activeSandbox.status > 0}
-                      />
-                    ) : (
-                      <div className="flex h-full flex-col">
-                        <div className="flex items-center h-8 border-b border-border/20 px-3 bg-muted/5 shrink-0">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Response</span>
-                        </div>
-                        <div className="flex flex-1 items-center justify-center text-muted-foreground bg-transparent">
-                          <div className="text-center opacity-30">
-                            <Send className="mx-auto mb-2 size-8 text-[var(--accent)]" />
-                            <p className="text-[10px] font-mono uppercase tracking-widest">Click SEND to see the response</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </ResizablePanel>
-                </ResizablePanelGroup>
-              </div>
-            </CyberPanel>
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </div>
           ) : (
-            <div className="flex flex-1 items-center justify-center text-muted-foreground">
-              <p className="text-sm">Create a sandbox to start</p>
+            <div className="flex flex-1 items-center justify-center text-[var(--tokyo-cyan)]/50 font-mono text-[10px] uppercase">
+              <p>Create a sandbox to start</p>
             </div>
           )}
-        </ResizablePanel>
-      </ResizablePanelGroup>
+        </div>
+      </CyberPanel>
     </div>
+
   )
 }
-

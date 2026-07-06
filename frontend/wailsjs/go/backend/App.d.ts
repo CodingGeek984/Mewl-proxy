@@ -28,6 +28,8 @@ export function RestartProxy():Promise<void>;
 
 export function ResumeFuzzer():Promise<void>;
 
+export function SaveCustomScripts(arg1:Array<backend.CustomScript>):Promise<void>;
+
 export function SaveNetworkConfig(arg1:string):Promise<void>;
 
 export function SaveRules(arg1:Array<backend.Rule>):Promise<string>;

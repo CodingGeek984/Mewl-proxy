@@ -158,7 +158,18 @@ func NextProxy(sessionID string) string {
 // For advanced protocols (vless, vmess, trojan, ss, hysteria2, tuic), will be handled separately
 func GetProxyFunc() func(*http.Request) (*url.URL, error) {
 	return func(r *http.Request) (*url.URL, error) {
-		proxyURL := NextProxy("")
+		sessionID := r.Header.Get("Cookie")
+		if sessionID == "" {
+			sessionID = r.Header.Get("Authorization")
+		}
+		if sessionID == "" {
+			sessionID = r.RemoteAddr
+		}
+		if sessionID == "" {
+			sessionID = r.Host
+		}
+
+		proxyURL := NextProxy(sessionID)
 		if proxyURL == "" {
 			return nil, nil // direct connection
 		}

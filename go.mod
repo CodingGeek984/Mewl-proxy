@@ -4,19 +4,21 @@ go 1.25.7
 
 require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
+	github.com/dop251/goja v0.0.0-20260701091749-b07b74453ea9
 	github.com/elazarl/goproxy v1.8.2
 	github.com/gorilla/websocket v1.5.3
-	github.com/mamamialezatoz/go-wappalyzer v0.0.0-20251005190200-a5256d9136d9
 	github.com/praetorian-inc/titus v1.1.7
 	github.com/projectdiscovery/katana v1.5.0
+	github.com/projectdiscovery/wappalyzergo v0.2.62
 	github.com/quic-go/quic-go v0.59.0
-	github.com/wailsapp/wails/v2 v2.11.0
-	golang.org/x/net v0.51.0
+	github.com/wailsapp/wails/v2 v2.12.0
+	golang.org/x/net v0.52.0
 	google.golang.org/protobuf v1.36.11
 	modernc.org/sqlite v1.46.1
 )
 
 require (
+	git.sr.ht/~jackmordaunt/go-toast/v2 v2.0.3 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.20.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.4 // indirect
@@ -50,12 +52,12 @@ require (
 	github.com/bodgit/windows v1.0.1 // indirect
 	github.com/brianvoe/gofakeit/v7 v7.2.1 // indirect
 	github.com/cloudflare/ahocorasick v0.0.0-20240916140611-054963ec9396 // indirect
-	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/ditashi/jsbeautifier-go v0.0.0-20141206144643-2520a8026a9c // indirect
 	github.com/djherbis/times v1.6.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
+	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -63,8 +65,10 @@ require (
 	github.com/gaissmai/bart v0.26.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-rod/rod v0.116.2 // indirect
+	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/google/pprof v0.0.0-20250423184734-337e5dd93bb4 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
@@ -96,7 +100,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mholt/archives v0.1.5 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
-	github.com/miekg/dns v1.1.62 // indirect
+	github.com/miekg/dns v1.1.72 // indirect
 	github.com/mikelolasagasti/xz v1.0.1 // indirect
 	github.com/minio/minlz v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
@@ -120,9 +124,8 @@ require (
 	github.com/projectdiscovery/retryabledns v1.0.112 // indirect
 	github.com/projectdiscovery/retryablehttp-go v1.3.2 // indirect
 	github.com/projectdiscovery/utils v0.8.0 // indirect
-	github.com/projectdiscovery/wappalyzergo v0.2.62 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
-	github.com/refraction-networking/utls v1.7.1 // indirect
+	github.com/refraction-networking/utls v1.8.3-0.20260301010127-aa6edf4b11af // indirect
 	github.com/remeh/sizedwaitgroup v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -163,14 +166,14 @@ require (
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
-	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/crypto v0.49.0 // indirect
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546 // indirect
-	golang.org/x/mod v0.32.0 // indirect
-	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/mod v0.33.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/text v0.35.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
-	golang.org/x/tools v0.41.0 // indirect
+	golang.org/x/tools v0.42.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.67.6 // indirect

@@ -61,12 +61,12 @@ function TreeNode({ node, depth, onSelect, selectedPath }: TreeNodeProps) {
     const isSelected = selectedPath === node.fullPath
     const hasChildren = node.children.size > 0
 
-    const colorClass = node.methods.has("POST") ? "text-amber-400" : node.methods.has("DELETE") ? "text-red-400" : "text-[var(--accent)]"
+    const colorClass = node.methods.has("POST") ? "text-[var(--tokyo-magenta)]" : node.methods.has("DELETE") ? "text-red-400" : "text-[var(--accent)]"
 
     return (
         <div className="flex flex-col select-none">
             <div
-                className={`flex items-center gap-1.5 px-2 py-1 cursor-pointer hover:bg-white/5 transition-colors group ${isSelected ? 'bg-sky-500/10 border-r-2 border-sky-500' : ''}`}
+                className={`flex items-center gap-1.5 px-2 py-1 cursor-pointer hover:bg-white/5 transition-colors group ${isSelected ? 'bg-[var(--tokyo-cyan-soft)] border-r-2 border-[var(--tokyo-cyan)]' : ''}`}
                 style={{ paddingLeft: `${depth * 12 + 8}px` }}
                 onClick={() => {
                     onSelect(node)
@@ -75,23 +75,23 @@ function TreeNode({ node, depth, onSelect, selectedPath }: TreeNodeProps) {
             >
                 <div className="w-4 h-4 flex items-center justify-center shrink-0">
                     {hasChildren ? (
-                        isOpen ? <ChevronDown className="size-3 text-muted-foreground/50" /> : <ChevronRight className="size-3 text-muted-foreground/50" />
+                        isOpen ? <ChevronDown className="size-3 text-[var(--tokyo-cyan)]/50" /> : <ChevronRight className="size-3 text-[var(--tokyo-cyan)]/50" />
                     ) : null}
                 </div>
                 <div className="shrink-0">
                     {depth === 0 ? (
-                        <Globe className={`size-3.5 ${isSelected ? 'text-[var(--accent)]' : 'text-muted-foreground/40'}`} />
+                        <Globe className={`size-3.5 ${isSelected ? 'text-[var(--accent)]' : 'text-[var(--tokyo-cyan)]/50'}`} />
                     ) : hasChildren ? (
-                        <Folder className={`size-3.5 ${isSelected ? 'text-amber-400' : 'text-muted-foreground/30'}`} />
+                        <Folder className={`size-3.5 ${isSelected ? 'text-[var(--tokyo-magenta)]' : 'text-[var(--tokyo-cyan)]/50'}`} />
                     ) : (
-                        <File className={`size-3.5 ${isSelected ? colorClass : 'text-muted-foreground/20'}`} />
+                        <File className={`size-3.5 ${isSelected ? colorClass : 'text-[var(--tokyo-cyan)]/50'}`} />
                     )}
                 </div>
-                <span className={`text-[11px] font-mono truncate transition-colors ${isSelected ? 'text-[var(--accent)] font-bold' : 'text-muted-foreground/80 group-hover:text-foreground'}`}>
+                <span className={`text-[11px] font-mono truncate transition-colors ${isSelected ? 'text-[var(--accent)] font-bold' : 'text-[var(--tokyo-cyan)]/50 group-hover:text-[var(--tokyo-cyan)]'}`}>
                     {node.label}
                 </span>
                 {node.requests > 1 && (
-                    <span className="text-[9px] text-muted-foreground/30 ml-auto opacity-0 group-hover:opacity-100 px-1 py-0.5 border border-border/10 rounded-sm">
+                    <span className="text-[9px] text-[var(--tokyo-cyan)]/50 ml-auto opacity-0 group-hover:opacity-100 px-1 py-0.5 border border-[var(--tokyo-border-cyan)] rounded-sm">
                         {node.requests}
                     </span>
                 )}
@@ -157,14 +157,14 @@ function SitemapTab() {
     }, [tree, search])
 
     return (
-        <div className="flex h-full w-full overflow-hidden p-2 gap-2 bg-background/50">
+        <div className="flex h-full w-full overflow-hidden p-2 gap-2 bg-transparent">
             {ctxMenu && <ContextMenu ctx={ctxMenu} onClose={() => setCtxMenu(null)} selectedUids={selectedUids} allData={requests} />}
 
             <ResizablePanelGroup direction="horizontal" id="map-main-group" className="flex-1 gap-2">
                 <ResizablePanel id="map-tree-panel" defaultSize={25} minSize={15} className="flex flex-col min-h-0 min-w-0">
                     <CyberPanel title="Tree" icon={<Target className="size-3" />} className="h-full">
                         <div className="flex flex-col h-full overflow-hidden">
-                            <div className="p-2 border-b border-border/10 bg-muted/5 shrink-0">
+                            <div className="p-2 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] shrink-0">
                                 <MonoInput
                                     icon={<Search className="size-3" />}
                                     placeholder="Filter tree..."
@@ -184,7 +184,7 @@ function SitemapTab() {
                     </CyberPanel>
                 </ResizablePanel>
 
-                <ResizableHandle id="map-tree-handle" className="w-1 bg-transparent hover:bg-sky-500/20 transition-colors" />
+                <ResizableHandle id="map-tree-handle" className="w-1 bg-transparent hover:bg-[var(--tokyo-cyan-soft)] transition-colors" />
 
                 <ResizablePanel id="map-content-panel" defaultSize={75} minSize={30} className="flex flex-col min-h-0 min-w-0">
                     {selectedNode ? (
@@ -194,7 +194,7 @@ function SitemapTab() {
                             className="h-full"
                             actions={
                                 <div className="flex items-center gap-1">
-                                    <Button variant="ghost" size="icon" className={`size-6 ${isInspectorVisible ? "text-[var(--accent)] bg-sky-500/10" : "text-muted-foreground"}`} onClick={() => setIsInspectorVisible(!isInspectorVisible)}>
+                                    <Button variant="ghost" size="icon" className={`size-6 ${isInspectorVisible ? "text-[var(--accent)] bg-[var(--tokyo-cyan-soft)]" : "text-[var(--tokyo-cyan)]/50"}`} onClick={() => setIsInspectorVisible(!isInspectorVisible)}>
                                         <Layout className="size-3" />
                                     </Button>
                                 </div>
@@ -202,7 +202,7 @@ function SitemapTab() {
                         >
                             <ResizablePanelGroup direction="vertical" id="map-detail-group" className="flex-1">
                                 <ResizablePanel id="map-table-panel" defaultSize={50} minSize={20} className="flex flex-col min-h-0 min-w-0">
-                                    <div className="flex-1 min-h-0 flex flex-col bg-background/30" ref={containerRef}>
+                                    <div className="flex-1 min-h-0 flex flex-col bg-transparent" ref={containerRef}>
                                         <TrafficTable
                                             tableState={tableState}
                                             containerRef={containerRef}
@@ -241,15 +241,15 @@ function SitemapTab() {
 
                                 {isInspectorVisible && (
                                     <>
-                                        <ResizableHandle id="map-detail-handle" className="h-1 bg-border/5 hover:bg-sky-500/20 transition-colors" />
-                                        <ResizablePanel id="map-inspector-panel" defaultSize={50} minSize={20} className="flex flex-col min-h-0 min-w-0 bg-background/50">
+                                        <ResizableHandle id="map-detail-handle" className="h-1 bg-border/5 hover:bg-[var(--tokyo-cyan-soft)] transition-colors" />
+                                        <ResizablePanel id="map-inspector-panel" defaultSize={50} minSize={20} className="flex flex-col min-h-0 min-w-0 bg-transparent">
                                             <div className="flex-1 overflow-hidden h-full flex flex-col">
                                                 {selectedReq ? (
                                                     <Tabs defaultValue="request" className="flex-1 flex flex-col overflow-hidden">
-                                                        <div className={`h-8 border-b border-border/10 bg-muted/5 flex items-center px-1 shrink-0 select-none ${!selectedReq ? 'opacity-30 pointer-events-none' : ''}`}>
+                                                        <div className={`h-8 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] flex items-center px-1 shrink-0 select-none ${!selectedReq ? 'opacity-30 pointer-events-none' : ''}`}>
                                                             <TabsList className="h-6 bg-transparent gap-0 p-0">
-                                                                <TabsTrigger value="request" className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-sky-500/10 data-[state=active]:text-[var(--accent)] rounded-none border-0">Request</TabsTrigger>
-                                                                <TabsTrigger value="response" disabled={!selectedReq || (selectedReq as any).status_code === 0} className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-sky-500/10 data-[state=active]:text-[var(--accent)] rounded-none border-0">Response</TabsTrigger>
+                                                                <TabsTrigger value="request" className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-[var(--tokyo-cyan-soft)] data-[state=active]:text-[var(--accent)] rounded-none border-0">Request</TabsTrigger>
+                                                                <TabsTrigger value="response" disabled={!selectedReq || (selectedReq as any).status_code === 0} className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-[var(--tokyo-cyan-soft)] data-[state=active]:text-[var(--accent)] rounded-none border-0">Response</TabsTrigger>
                                                             </TabsList>
                                                         </div>
                                                         <TabsContent value="request" className="flex-1 m-0 overflow-hidden">
@@ -260,7 +260,7 @@ function SitemapTab() {
                                                         </TabsContent>
                                                     </Tabs>
                                                 ) : (
-                                                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground/20 italic text-[10px] uppercase tracking-widest">
+                                                    <div className="h-full flex flex-col items-center justify-center text-[var(--tokyo-cyan)]/50 italic text-[10px] uppercase tracking-widest">
                                                         No Request Selected
                                                     </div>
                                                 )}
@@ -271,10 +271,10 @@ function SitemapTab() {
                             </ResizablePanelGroup>
                         </CyberPanel>
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center bg-muted/5 border border-dashed border-border/20 rounded-lg">
-                            <Target className="size-12 text-muted-foreground/10 mb-4" />
-                            <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground/30">Select a node</h3>
-                            <p className="text-[10px] mt-2 text-muted-foreground/20 max-w-[200px] text-center">
+                        <div className="h-full flex flex-col items-center justify-center bg-[var(--tokyo-panel-2)] border border-dashed border-[var(--tokyo-border-cyan)] rounded-lg">
+                            <Target className="size-12 text-[var(--tokyo-cyan)]/50 mb-4" />
+                            <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-[var(--tokyo-cyan)]/50">Select a node</h3>
+                            <p className="text-[10px] mt-2 text-[var(--tokyo-cyan)]/50 max-w-[200px] text-center">
                                 Browse the tree to view specific endpoint details and traffic history.
                             </p>
                         </div>
@@ -374,20 +374,20 @@ function WorkersTab() {
     }, [lastSelectedUid, selectedUids, requests])
 
     return (
-        <div className="flex h-full w-full overflow-hidden p-2 gap-2 bg-background/50">
+        <div className="flex h-full w-full overflow-hidden p-2 gap-2 bg-transparent">
             <ResizablePanelGroup direction="horizontal" id="workers-main-group" className="flex-1 gap-2">
                 <ResizablePanel id="workers-config-panel" defaultSize={25} minSize={20} className="flex flex-col min-h-0 min-w-0">
                     <CyberPanel title="Worker Config" icon={<Settings2 className="size-3" />} className="h-full">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
                             <div className="px-2 pt-2 shrink-0">
-                                <TabsList className="w-full bg-muted/5 gap-1 p-1 h-8 rounded-lg border-b-0">
-                                    <TabsTrigger value="spider" className="flex-1 h-6 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-sky-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">
+                                <TabsList className="w-full bg-[var(--tokyo-panel-2)] gap-1 p-1 h-8 rounded-lg border-b-0">
+                                    <TabsTrigger value="spider" className="flex-1 h-6 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-[var(--tokyo-cyan)] data-[state=active]:text-white text-[var(--tokyo-cyan)]/50 hover:text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)] rounded-md transition-all duration-200">
                                         <Zap className="size-3 mr-1.5" /> Spider
                                     </TabsTrigger>
-                                    <TabsTrigger value="titus" className="flex-1 h-6 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-rose-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">
+                                    <TabsTrigger value="titus" className="flex-1 h-6 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-red-500 data-[state=active]:text-white text-[var(--tokyo-cyan)]/50 hover:text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)] rounded-md transition-all duration-200">
                                         <Shield className="size-3 mr-1.5" /> Titus
                                     </TabsTrigger>
-                                    <TabsTrigger value="analyzer" className="flex-1 h-6 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-amber-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">
+                                    <TabsTrigger value="analyzer" className="flex-1 h-6 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-[var(--tokyo-magenta)] data-[state=active]:text-white text-[var(--tokyo-cyan)]/50 hover:text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)] rounded-md transition-all duration-200">
                                         <Bug className="size-3 mr-1.5" /> Wappalyzer
                                     </TabsTrigger>
                                 </TabsList>
@@ -395,24 +395,24 @@ function WorkersTab() {
                             <ScrollArea className="flex-1 px-4 py-4 shrink-0">
                                 <TabsContent value="spider" className="m-0 space-y-6">
                                     <div className="space-y-2.5">
-                                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Target URL</Label>
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-[var(--tokyo-cyan)]/50">Target URL</Label>
                                         <MonoInput
                                             icon={<Globe className="size-3 text-[var(--accent)]" />}
                                             placeholder="https://example.com"
                                             value={targetUrl}
                                             onChange={e => setTargetUrl(e.target.value)}
-                                            className="border-sky-500/20 focus:border-sky-500/50 text-[10px]"
+                                            className="border-[var(--tokyo-cyan)] focus:border-[var(--tokyo-cyan)] text-[10px]"
                                         />
                                     </div>
                                     <div className="space-y-2.5">
-                                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Engine Mode</Label>
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-[var(--tokyo-cyan)]/50">Engine Mode</Label>
                                         <div className="grid grid-cols-3 gap-1">
                                             {(["passive", "standard", "ajax"] as const).map(mode => (
                                                 <Button
                                                     key={mode}
                                                     variant="outline"
                                                     size="sm"
-                                                    className={`h-7 text-[9px] uppercase font-bold ${spiderMode === mode ? "bg-sky-500/20 border-sky-500/50 text-[var(--accent)]" : "bg-muted/5 text-muted-foreground"}`}
+                                                    className={`h-7 text-[9px] uppercase font-bold ${spiderMode === mode ? "bg-[var(--tokyo-cyan-soft)] border-[var(--tokyo-cyan)] text-[var(--accent)]" : "bg-[var(--tokyo-panel-2)] text-[var(--tokyo-cyan)]/50"}`}
                                                     onClick={() => setSpiderMode(mode)}
                                                 >
                                                     {mode}
@@ -423,7 +423,7 @@ function WorkersTab() {
                                     <div className="space-y-4 pt-2">
                                         <div className="flex items-center justify-between">
                                             <Label className="text-[10px] font-bold">Max Depth</Label>
-                                            <input type="number" value={maxDepth} onChange={e => setMaxDepth(parseInt(e.target.value))} className="w-12 h-6 bg-muted/10 border border-border/20 rounded px-1 text-[10px] font-mono text-center" />
+                                            <input type="number" value={maxDepth} onChange={e => setMaxDepth(parseInt(e.target.value))} className="w-12 h-6 bg-[var(--tokyo-panel-2)] border border-[var(--tokyo-border-cyan)] rounded px-1 text-[10px] font-mono text-center" />
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <Label className="text-[10px] font-bold">Follow Redirects</Label>
@@ -436,37 +436,37 @@ function WorkersTab() {
                                                 <Square className="size-3.5 mr-2 fill-current" /> Stop
                                             </Button>
                                         ) : (
-                                            <Button className="flex-1 h-9 text-[11px] font-black uppercase tracking-widest bg-sky-500 hover:bg-[var(--accent)] text-white shadow-[0_4px_10px_rgba(56,189,248,0.3)]" onClick={startSpider} disabled={!targetUrl}>
+                                            <Button className="flex-1 h-9 text-[11px] font-black uppercase tracking-widest bg-[var(--tokyo-cyan)] hover:bg-[var(--accent)] text-white shadow-[0_4px_10px_rgba(56,189,248,0.3)]" onClick={startSpider} disabled={!targetUrl}>
                                                 <Play className="size-3.5 mr-2 fill-current" /> Launch
                                             </Button>
                                         )}
                                     </div>
                                 </TabsContent>
                                  <TabsContent value="titus" className="m-0 h-full">
-                                    <div className="flex-1 flex flex-col bg-muted/5 border border-border/10 rounded-md p-2 h-full">
+                                    <div className="flex-1 flex flex-col bg-[var(--tokyo-panel-2)] border border-[var(--tokyo-border-cyan)] rounded-md p-2 h-full">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <Shield className="size-3.5 text-rose-400" />
+                                            <Shield className="size-3.5 text-red-500" />
                                             <span className="text-[10px] font-black uppercase tracking-widest">Passive Secrets Scan</span>
                                             <div className="ml-auto flex items-center gap-2">
                                                 <span className="relative flex h-2 w-2">
-                                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                                                 </span>
-                                                <span className="text-[9px] text-muted-foreground">Monitoring</span>
+                                                <span className="text-[9px] text-[var(--tokyo-cyan)]/50">Monitoring</span>
                                             </div>
                                         </div>
                                         <ScrollArea className="flex-1 min-h-0 container">
                                             <div className="space-y-2 px-1">
                                                 {titusResults.length > 0 ? titusResults.map((res, i) => (
-                                                    <div key={i} className="flex flex-col gap-1 text-[9px] font-mono border-l-2 border-rose-500/50 bg-background/50 p-2 rounded-r-md">
-                                                        <div className="flex justify-between items-center text-muted-foreground">
-                                                            <span className="text-foreground font-bold">{res.rule_name}</span>
+                                                    <div key={i} className="flex flex-col gap-1 text-[9px] font-mono border-l-2 border-rose-500/50 bg-transparent p-2 rounded-r-md">
+                                                        <div className="flex justify-between items-center text-[var(--tokyo-cyan)]/50">
+                                                            <span className="text-[var(--tokyo-cyan)] font-bold">{res.rule_name}</span>
                                                             <span className="text-[8px] opacity-50">{res.source} • {res.rule_id}</span>
                                                         </div>
-                                                        <div className="text-rose-400 break-all">{res.match}</div>
-                                                        <div className="text-muted-foreground/50 truncate text-[8px]">{res.url}</div>
+                                                        <div className="text-red-500 break-all">{res.match}</div>
+                                                        <div className="text-[var(--tokyo-cyan)]/50 truncate text-[8px]">{res.url}</div>
                                                     </div>
-                                                )) : <div className="text-muted-foreground/30 italic text-center p-4">No secrets detected yet. Navigate to trigger scans.</div>}
+                                                )) : <div className="text-[var(--tokyo-cyan)]/50 italic text-center p-4">No secrets detected yet. Navigate to trigger scans.</div>}
                                             </div>
                                         </ScrollArea>
                                     </div>
@@ -474,18 +474,18 @@ function WorkersTab() {
                                  <TabsContent value="analyzer" className="m-0 space-y-4">
                                      <div className="space-y-3">
                                          <div className="space-y-2">
-                                             <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Target URL</Label>
+                                             <Label className="text-[10px] font-black uppercase tracking-widest text-[var(--tokyo-cyan)]/50">Target URL</Label>
                                              <div className="flex gap-2">
                                                  <MonoInput 
-                                                     icon={<Globe className="size-3 text-amber-400" />}
+                                                     icon={<Globe className="size-3 text-[var(--tokyo-magenta)]" />}
                                                      placeholder="https://example.com"
                                                      value={targetUrl}
                                                      onChange={e => setTargetUrl(e.target.value)}
-                                                     className="flex-1 h-8 text-[10px] border-amber-500/20"
+                                                     className="flex-1 h-8 text-[10px] border-[var(--tokyo-border-magenta)]"
                                                  />
                                                  <Button 
                                                      size="sm" 
-                                                     className="h-8 bg-amber-500 hover:bg-amber-400 text-white font-black uppercase text-[10px] tracking-widest px-4"
+                                                     className="h-8 bg-[var(--tokyo-magenta)] hover:bg-[var(--tokyo-magenta)] text-white font-black uppercase text-[10px] tracking-widest px-4"
                                                      onClick={runWappalyzer}
                                                      disabled={isAnalyzing || !targetUrl}
                                                  >
@@ -494,9 +494,9 @@ function WorkersTab() {
                                              </div>
                                          </div>
 
-                                         <div className="bg-muted/5 border border-border/10 rounded-lg overflow-hidden min-h-[120px] flex flex-col">
-                                            <div className="px-3 py-1.5 bg-muted/10 border-b border-border/10 flex items-center justify-between">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Analysis Result</span>
+                                         <div className="bg-[var(--tokyo-panel-2)] border border-[var(--tokyo-border-cyan)] rounded-lg overflow-hidden min-h-[120px] flex flex-col">
+                                            <div className="px-3 py-1.5 bg-[var(--tokyo-panel-2)] border-b border-[var(--tokyo-border-cyan)] flex items-center justify-between">
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--tokyo-cyan)]/50">Analysis Result</span>
                                                 {wappalyzerResults && !wappalyzerResults.error && (
                                                     <span className="text-[8px] text-emerald-400 font-mono">Found {wappalyzerResults.technologies?.length || 0} hits</span>
                                                 )}
@@ -504,7 +504,7 @@ function WorkersTab() {
                                             <ScrollArea className="flex-1 h-[200px]">
                                                 {isAnalyzing ? (
                                                     <div className="h-full flex flex-col items-center justify-center py-12 gap-3 opacity-50">
-                                                        <Loader2 className="size-6 text-amber-500 animate-spin" />
+                                                        <Loader2 className="size-6 text-[var(--tokyo-magenta)] animate-spin" />
                                                         <span className="text-[9px] uppercase font-bold tracking-widest animate-pulse">Scanning Stack...</span>
                                                     </div>
                                                 ) : wappalyzerResults ? (
@@ -515,14 +515,14 @@ function WorkersTab() {
                                                     ) : (
                                                         <div className="p-2 space-y-1">
                                                             {wappalyzerResults.technologies?.map((tech: any, i: number) => (
-                                                                <div key={i} className="flex flex-col gap-0.5 p-2 bg-background/40 border border-border/5 rounded hover:border-amber-500/30 transition-colors group">
+                                                                <div key={i} className="flex flex-col gap-0.5 p-2 bg-transparent border border-[var(--tokyo-border-cyan)] rounded hover:border-[var(--tokyo-border-magenta)] transition-colors group">
                                                                     <div className="flex justify-between items-center text-[10px]">
-                                                                        <span className="font-bold text-foreground/90">{tech.name}</span>
+                                                                        <span className="font-bold text-[var(--tokyo-cyan)]">{tech.name}</span>
                                                                         {tech.confidence && <span className="text-[8px] text-emerald-400 opacity-60 font-mono">{tech.confidence}%</span>}
                                                                     </div>
                                                                     <div className="flex flex-wrap gap-1 mt-1">
                                                                         {tech.categories?.map((cat: string) => (
-                                                                            <span key={cat} className="text-[8px] px-1 bg-amber-500/10 text-amber-400/80 rounded border border-amber-500/5 uppercase tracking-tighter">
+                                                                            <span key={cat} className="text-[8px] px-1 bg-[var(--tokyo-magenta)]/10 text-[var(--tokyo-magenta)]/80 rounded border border-[var(--tokyo-border-magenta)] uppercase tracking-tighter">
                                                                                 {cat}
                                                                             </span>
                                                                         ))}
@@ -530,13 +530,13 @@ function WorkersTab() {
                                                                 </div>
                                                             ))}
                                                             {(!wappalyzerResults.technologies || wappalyzerResults.technologies.length === 0) && (
-                                                                <div className="py-12 text-center text-muted-foreground/30 italic text-[10px]">No technologies identified</div>
+                                                                <div className="py-12 text-center text-[var(--tokyo-cyan)]/50 italic text-[10px]">No technologies identified</div>
                                                             )}
                                                         </div>
                                                     )
                                                 ) : (
                                                     <div className="py-12 flex flex-col items-center justify-center gap-3 opacity-20 group hover:opacity-30 transition-opacity">
-                                                        <Bug className="size-8 text-amber-500" />
+                                                        <Bug className="size-8 text-[var(--tokyo-magenta)]" />
                                                         <span className="text-[9px] uppercase font-bold tracking-[0.2em]">Ready for Analysis</span>
                                                     </div>
                                                 )}
@@ -545,37 +545,37 @@ function WorkersTab() {
                                      </div>
                                  </TabsContent>
                              </ScrollArea>
-                            <div className="mt-auto border-t border-border/10 bg-muted/5 p-2 shrink-0">
+                            <div className="mt-auto border-t border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] p-2 shrink-0">
                                 <div className="flex items-center gap-1.5 mb-2 px-1">
-                                    <Clock className="size-3 text-muted-foreground/40" />
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">Activity Log</span>
+                                    <Clock className="size-3 text-[var(--tokyo-cyan)]/50" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-[var(--tokyo-cyan)]/50">Activity Log</span>
                                     {isSpidering && <Loader2 className="size-2.5 ml-auto text-[var(--accent)] animate-spin" />}
                                 </div>
                                 <div className="h-32 overflow-y-auto font-mono text-[9px] scrollbar-cyber space-y-1">
                                     {spiderResults.length > 0 ? spiderResults.map(res => (
-                                        <div key={res.id} className="flex gap-2 text-muted-foreground/60 border-l border-border/10 pl-2 py-0.5">
-                                            <span className="truncate text-foreground/70">{res.url}</span>
+                                        <div key={res.id} className="flex gap-2 text-[var(--tokyo-cyan)]/50 border-l border-[var(--tokyo-border-cyan)] pl-2 py-0.5">
+                                            <span className="truncate text-[var(--tokyo-cyan)]">{res.url}</span>
                                         </div>
-                                    )) : <div className="text-muted-foreground/20 italic p-2 text-center">No active results</div>}
+                                    )) : <div className="text-[var(--tokyo-cyan)]/50 italic p-2 text-center">No active results</div>}
                                 </div>
                             </div>
                         </Tabs>
                     </CyberPanel>
                 </ResizablePanel>
 
-                <ResizableHandle id="workers-config-handle" className="w-1 bg-transparent hover:bg-sky-500/20 transition-colors" />
+                <ResizableHandle id="workers-config-handle" className="w-1 bg-transparent hover:bg-[var(--tokyo-cyan-soft)] transition-colors" />
 
                 <ResizablePanel id="workers-content-panel" defaultSize={75} minSize={30} className="flex flex-col min-h-0 min-w-0">
                     <CyberPanel title="Worker History" icon={<History className="size-3" />} className="h-full" actions={
                         <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className={`size-6 ${isInspectorVisible ? "text-[var(--accent)] bg-sky-500/10" : "text-muted-foreground"}`} onClick={() => setIsInspectorVisible(!isInspectorVisible)}>
+                            <Button variant="ghost" size="icon" className={`size-6 ${isInspectorVisible ? "text-[var(--accent)] bg-[var(--tokyo-cyan-soft)]" : "text-[var(--tokyo-cyan)]/50"}`} onClick={() => setIsInspectorVisible(!isInspectorVisible)}>
                                 <Layout className="size-3" />
                             </Button>
                         </div>
                     }>
                         <ResizablePanelGroup direction="vertical" id="workers-detail-group" className="flex-1">
                             <ResizablePanel id="workers-table-panel" defaultSize={50} minSize={20} className="flex flex-col min-h-0 min-w-0">
-                                <div className="flex-1 min-h-0 flex flex-col bg-background/30" ref={containerRef}>
+                                <div className="flex-1 min-h-0 flex flex-col bg-transparent" ref={containerRef}>
                                     <TrafficTable
                                         tableState={tableState}
                                         containerRef={containerRef}
@@ -599,15 +599,15 @@ function WorkersTab() {
                             </ResizablePanel>
                             {isInspectorVisible && (
                                 <>
-                                    <ResizableHandle id="workers-detail-handle" className="h-1 bg-border/5 hover:bg-sky-500/20 transition-colors" />
-                                    <ResizablePanel id="workers-inspector-panel" defaultSize={50} minSize={20} className="flex flex-col min-h-0 min-w-0 bg-background/50">
+                                    <ResizableHandle id="workers-detail-handle" className="h-1 bg-border/5 hover:bg-[var(--tokyo-cyan-soft)] transition-colors" />
+                                    <ResizablePanel id="workers-inspector-panel" defaultSize={50} minSize={20} className="flex flex-col min-h-0 min-w-0 bg-transparent">
                                         <div className="flex-1 overflow-hidden h-full flex flex-col">
                                             {selectedReq ? (
                                                 <Tabs defaultValue="request" className="flex-1 flex flex-col overflow-hidden">
-                                                    <div className={`h-8 border-b border-border/10 bg-muted/5 flex items-center px-1 shrink-0 select-none ${!selectedReq ? 'opacity-30 pointer-events-none' : ''}`}>
+                                                    <div className={`h-8 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] flex items-center px-1 shrink-0 select-none ${!selectedReq ? 'opacity-30 pointer-events-none' : ''}`}>
                                                         <TabsList className="h-6 bg-transparent gap-0 p-0">
-                                                            <TabsTrigger value="request" className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-sky-500/10 data-[state=active]:text-[var(--accent)] rounded-none border-0">Request</TabsTrigger>
-                                                            <TabsTrigger value="response" disabled={!selectedReq || (selectedReq as any).status_code === 0} className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-sky-500/10 data-[state=active]:text-[var(--accent)] rounded-none border-0">Response</TabsTrigger>
+                                                            <TabsTrigger value="request" className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-[var(--tokyo-cyan-soft)] data-[state=active]:text-[var(--accent)] rounded-none border-0">Request</TabsTrigger>
+                                                            <TabsTrigger value="response" disabled={!selectedReq || (selectedReq as any).status_code === 0} className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-[var(--tokyo-cyan-soft)] data-[state=active]:text-[var(--accent)] rounded-none border-0">Response</TabsTrigger>
                                                         </TabsList>
                                                     </div>
                                                     <TabsContent value="request" className="flex-1 m-0 overflow-hidden">
@@ -618,7 +618,7 @@ function WorkersTab() {
                                                     </TabsContent>
                                                 </Tabs>
                                             ) : (
-                                                <div className="h-full flex flex-col items-center justify-center text-muted-foreground/20 italic text-[10px] uppercase tracking-widest">
+                                                <div className="h-full flex flex-col items-center justify-center text-[var(--tokyo-cyan)]/50 italic text-[10px] uppercase tracking-widest">
                                                     No Selection
                                                 </div>
                                             )}
@@ -668,12 +668,12 @@ function ScopeTab() {
     const removeScope = (item: string) => setScope(prev => prev.filter(i => i !== item))
 
     return (
-        <div className="flex h-full w-full overflow-hidden p-4 gap-4 bg-background/50">
+        <div className="flex h-full w-full overflow-hidden p-4 gap-4 bg-transparent">
             <CyberPanel title="Target Scope" icon={<Shield className="size-3" />} className="flex-1 max-w-2xl mx-auto">
                 <div className="flex flex-col h-full p-4 space-y-6">
                     <div className="space-y-2">
-                        <Label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/50">Definition</Label>
-                        <p className="text-[10px] text-muted-foreground/40 leading-relaxed">
+                        <Label className="text-[11px] font-black uppercase tracking-widest text-[var(--tokyo-cyan)]/50">Definition</Label>
+                        <p className="text-[10px] text-[var(--tokyo-cyan)]/50 leading-relaxed">
                             Define which hosts, IP ranges, or URL patterns are considered "in-scope". 
                             Future updates will allow filtering the Sitemap and History based on these rules.
                         </p>
@@ -689,17 +689,17 @@ function ScopeTab() {
                                 onKeyDown={e => e.key === "Enter" && addScope()}
                                 className="flex-1 h-9 text-[11px]"
                             />
-                            <Button className="h-9 px-4 bg-sky-500 hover:bg-[var(--accent)] text-white font-bold" onClick={addScope}>
+                            <Button className="h-9 px-4 bg-[var(--tokyo-cyan)] hover:bg-[var(--accent)] text-white font-bold" onClick={addScope}>
                                 Add
                             </Button>
                         </div>
 
-                        <ScrollArea className="h-[400px] border border-border/10 rounded-lg bg-muted/5 p-2">
+                        <ScrollArea className="h-[400px] border border-[var(--tokyo-border-cyan)] rounded-lg bg-[var(--tokyo-panel-2)] p-2">
                             <div className="space-y-1">
                                 {scope.length > 0 ? scope.map(item => (
-                                    <div key={item} className="flex items-center justify-between px-3 py-2 bg-muted/10 border border-border/5 rounded border-l-2 border-l-sky-500/50 group">
-                                        <span className="text-[11px] font-mono text-foreground/80">{item}</span>
-                                        <Button variant="ghost" size="icon" className="size-6 text-muted-foreground/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all" onClick={() => removeScope(item)}>
+                                    <div key={item} className="flex items-center justify-between px-3 py-2 bg-[var(--tokyo-panel-2)] border border-[var(--tokyo-border-cyan)] rounded border-l-2 border-l-sky-500/50 group">
+                                        <span className="text-[11px] font-mono text-[var(--tokyo-cyan)]">{item}</span>
+                                        <Button variant="ghost" size="icon" className="size-6 text-[var(--tokyo-cyan)]/50 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all" onClick={() => removeScope(item)}>
                                             <Trash2 className="size-3" />
                                         </Button>
                                     </div>
@@ -722,13 +722,13 @@ export function MapModule() {
     const [activeTab, setActiveTab] = useState("sitemap")
 
     return (
-        <div className="flex flex-col h-full w-full overflow-hidden bg-background">
+        <div className="flex flex-col h-full w-full overflow-hidden bg-[var(--tokyo-panel)]">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col p-0 gap-0">
-                <div className="border-b px-3 shrink-0 bg-background/40 backdrop-blur-md z-30">
-                    <TabsList className="h-9 bg-muted/5 gap-1 p-1 border-b-0 rounded-lg">
-                        <TabsTrigger value="sitemap" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-sky-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">Sitemap</TabsTrigger>
-                        <TabsTrigger value="workers" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-amber-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">Workers</TabsTrigger>
-                        <TabsTrigger value="scope" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-purple-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">Scope</TabsTrigger>
+                <div className="border-b px-3 shrink-0 bg-transparent backdrop-blur-md z-30">
+                    <TabsList className="h-9 bg-[var(--tokyo-panel-2)] gap-1 p-1 border-b-0 rounded-lg">
+                        <TabsTrigger value="sitemap" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-[var(--tokyo-cyan)] data-[state=active]:text-white text-[var(--tokyo-cyan)]/50 hover:text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)] rounded-md transition-all duration-200">Sitemap</TabsTrigger>
+                        <TabsTrigger value="workers" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-[var(--tokyo-magenta)] data-[state=active]:text-white text-[var(--tokyo-cyan)]/50 hover:text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)] rounded-md transition-all duration-200">Workers</TabsTrigger>
+                        <TabsTrigger value="scope" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-purple-500 data-[state=active]:text-white text-[var(--tokyo-cyan)]/50 hover:text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)] rounded-md transition-all duration-200">Scope</TabsTrigger>
                     </TabsList>
                 </div>
                 <div className="flex-1 min-h-0 relative">

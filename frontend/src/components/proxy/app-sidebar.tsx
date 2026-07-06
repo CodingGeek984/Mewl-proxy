@@ -8,34 +8,58 @@ import {
   Puzzle,
   Settings,
   Cat,
-  ChevronsLeft,
-  ChevronsRight,
+  Shield,
+  ScrollText,
+  Braces,
+  Columns3,
+  KeyRound,
+  Terminal,
 } from "lucide-react"
 
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
-  useSidebar,
 } from "@/components/ui/sidebar"
 
-export type ModuleId = "dashboard" | "map" | "proxy" | "repeater" | "iterator" | "extensions" | "settings"
+export type ModuleId =
+  | "dashboard"
+  | "map"
+  | "proxy"
+  | "intercept"
+  | "history"
+  | "repeater"
+  | "intruder"
+  | "decoder"
+  | "comparer"
+  | "extensions"
+  | "certificates"
+  | "logs"
+  | "settings"
 
 const DEFAULT_MODULES: { id: ModuleId; label: string; icon: any }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "map", label: "Map", icon: FolderTree },
   { id: "proxy", label: "Proxy", icon: Network },
+  { id: "intercept", label: "Intercept", icon: Shield },
+  { id: "history", label: "HTTP History", icon: ScrollText },
   { id: "repeater", label: "Repeater", icon: Repeat2 },
-  { id: "iterator", label: "Iterator", icon: Bomb },
+  { id: "intruder", label: "Intruder", icon: Bomb },
+  { id: "decoder", label: "Decoder", icon: Braces },
+  { id: "comparer", label: "Comparer", icon: Columns3 },
   { id: "extensions", label: "Extensions", icon: Puzzle },
+  { id: "certificates", label: "Certificates", icon: KeyRound },
+  { id: "logs", label: "Logs", icon: Terminal },
+  { id: "map", label: "Target Map", icon: FolderTree },
+]
+
+const FOOTER_MODULES: { id: ModuleId; label: string; icon: any }[] = [
+  { id: "extensions", label: "Extensions", icon: Puzzle },
+  { id: "settings", label: "Settings", icon: Settings },
 ]
 
 interface AppSidebarProps {
@@ -46,7 +70,6 @@ interface AppSidebarProps {
 export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
   const [modules, setModules] = useState(DEFAULT_MODULES)
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null)
-  const { toggleSidebar, state } = useSidebar()
 
   // Load saved order
   useEffect(() => {
@@ -85,45 +108,28 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
     saveOrder(modules)
   }
 
-  const isCollapsed = state === "collapsed"
-
   return (
-    <Sidebar collapsible="icon" className="top-8 h-[calc(100vh-32px)] select-none"
-      style={{ background: 'var(--background-elevated)', borderRight: '1px solid var(--border-default)' }}
+    <Sidebar collapsible="none" className="top-8 h-[calc(100vh-32px)] w-[64px] select-none"
+      style={{ background: 'var(--sidebar)', borderRight: '1px solid var(--sidebar-border)' }}
     >
-      <SidebarHeader>
+      <SidebarHeader className="px-2 py-3">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              size="lg"
-              className="transition-all duration-300 group/meowl-header relative overflow-hidden"
+              size="icon"
+              className="mx-auto size-10 transition-all duration-300 group/meowl-header relative overflow-hidden"
               tooltip="Meowl"
-              style={{ borderRadius: '10px' }}
+              style={{ borderRadius: '14px', background: 'linear-gradient(135deg, rgba(122,162,247,0.18), rgba(187,154,247,0.14))', border: '1px solid rgba(122,162,247,0.24)' }}
             >
-              <div
-                className="flex size-8 shrink-0 items-center justify-center rounded-xl transition-all duration-300"
-                style={{
-                  background: 'var(--accent-glow)',
-                  color: 'var(--accent)',
-                  boxShadow: '0 0 20px var(--accent-glow)'
-                }}
-              >
-                <Cat className="size-5" />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight ml-2 truncate group-data-[collapsible=icon]:hidden">
-                <span className="truncate font-black tracking-tight" style={{ color: 'var(--foreground)' }}>Meowl</span>
-                <span className="truncate text-[10px] uppercase tracking-widest" style={{ color: 'var(--foreground-muted)', opacity: 0.6 }}>v1.0.0-beta</span>
-              </div>
+              <Cat className="size-5 text-[var(--accent)]" />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel style={{ color: 'var(--foreground-muted)', opacity: 0.5 }}>Modules</SidebarGroupLabel>
+      <SidebarContent className="px-2">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               {modules.map((mod, idx) => {
                 const isActive = activeModule === mod.id
                 return (
@@ -139,22 +145,24 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
                       isActive={isActive}
                       onClick={() => onModuleChange(mod.id)}
                       tooltip={mod.label}
-                      className="transition-all duration-200 group/btn relative overflow-hidden"
+                      size="icon"
+                      className="mx-auto size-10 transition-all duration-200 group/btn relative overflow-hidden"
                       style={{
-                        borderRadius: '8px',
+                        borderRadius: '12px',
                         ...(isActive ? {
-                          background: 'var(--accent-glow)',
-                          boxShadow: `0 0 12px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.06)`,
+                          background: 'linear-gradient(135deg, rgba(187,154,247,0.25), rgba(157,124,216,0.10))',
+                          boxShadow: `0 0 20px rgba(187,154,247,0.3), inset 0 1px 0 rgba(255,255,255,0.1)`,
+                          border: '1px solid rgba(187,154,247,0.4)',
                         } : {})
                       }}
                     >
                       {/* Active indicator bar */}
                       <div
-                        className="absolute inset-y-0 left-0 w-[2px] transition-all duration-300"
+                        className="absolute inset-y-2 left-0 w-[3px] transition-all duration-300"
                         style={{
                           background: 'var(--accent)',
                           opacity: isActive ? 1 : 0,
-                          borderRadius: '0 2px 2px 0',
+                          borderRadius: '0 999px 999px 0',
                           boxShadow: isActive ? '0 0 8px var(--accent-glow)' : 'none',
                         }}
                       />
@@ -164,60 +172,40 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
                           color: isActive ? 'var(--accent)' : 'var(--foreground-muted)',
                         }}
                       />
-                      <span
-                        className="transition-all duration-200"
-                        style={{
-                          color: isActive ? 'var(--accent)' : 'var(--foreground-muted)',
-                          fontWeight: isActive ? 600 : 400,
-                        }}
-                      >{mod.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
               })}
             </SidebarMenu>
           </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
+      <SidebarFooter className="px-2 pb-3">
+        <SidebarMenu className="gap-1">
+          {FOOTER_MODULES.map((mod) => {
+            const isActive = activeModule === mod.id
+            return (
+          <SidebarMenuItem key={mod.id}>
             <SidebarMenuButton
-              onClick={toggleSidebar}
-              tooltip={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className="transition-all duration-200 group/toggle"
-              style={{ borderRadius: '8px' }}
-            >
-              {isCollapsed
-                ? <ChevronsRight className="size-4" style={{ color: 'var(--foreground-muted)' }} />
-                : <ChevronsLeft className="size-4" style={{ color: 'var(--foreground-muted)' }} />
-              }
-              <span style={{ color: 'var(--foreground-muted)' }}>Collapse</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              isActive={activeModule === "settings"}
-              onClick={() => onModuleChange("settings")}
-              tooltip="Settings"
-              className="transition-all duration-200"
+              isActive={isActive}
+              onClick={() => onModuleChange(mod.id)}
+              tooltip={mod.label}
+              size="icon"
+              className="mx-auto size-10 transition-all duration-200"
               style={{
-                borderRadius: '8px',
-                ...(activeModule === "settings" ? {
+                borderRadius: '12px',
+                ...(isActive ? {
                   background: 'var(--accent-glow)',
                 } : {})
               }}
             >
-              <Settings className="size-4" style={{ color: activeModule === "settings" ? 'var(--accent)' : 'var(--foreground-muted)' }} />
-              <span style={{ color: activeModule === "settings" ? 'var(--accent)' : 'var(--foreground-muted)' }}>Settings</span>
+              <mod.icon className="size-4" style={{ color: isActive ? 'var(--accent)' : 'var(--foreground-muted)' }} />
             </SidebarMenuButton>
           </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarFooter>
-
-      <SidebarRail />
     </Sidebar>
   )
 }

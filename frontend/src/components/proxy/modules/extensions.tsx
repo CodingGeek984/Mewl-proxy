@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
+// @ts-ignore
+import * as App from "@wailsjs/go/backend/App"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -84,6 +86,9 @@ function loadScripts(): CustomScript[] {
 
 function saveScripts(scripts: CustomScript[]) {
   localStorage.setItem(SCRIPTS_KEY, JSON.stringify(scripts))
+  try {
+    App.SaveCustomScripts(scripts)
+  } catch(e) { console.error("Failed to sync scripts with backend", e) }
 }
 
 // ─── Category Helpers ────────────────────────────────────────────────────────
@@ -148,22 +153,23 @@ function ScriptEditor({ script, onSave, onCancel }: {
   const [description, setDescription] = useState(script?.description || "")
   const [code, setCode] = useState(script?.code || `// Meowl Extension Script
 // Available hooks:
-//   onRequest(req)  - called before each request
-//   onResponse(res) - called after each response
+//   onRequest(raw)  - called before each request
+//   onResponse(raw) - called after each response
+//
+// These functions receive the RAW HTTP string (headers + body)
+// and must return the modified RAW HTTP string.
 //
 // Example:
-function onRequest(req) {
+function onRequest(raw) {
   // Add a custom header to all requests
-  req.headers["X-Custom-Header"] = "meowl";
-  return req;
+  if (raw.includes("HTTP/1.1\\r\\n")) {
+    return raw.replace("HTTP/1.1\\r\\n", "HTTP/1.1\\r\\nX-Meowl-Pwn: true\\r\\n");
+  }
+  return raw;
 }
 
-function onResponse(res) {
-  // Log responses with specific status codes
-  if (res.statusCode >= 400) {
-    console.log("[Extension] Error:", res.statusCode, res.url);
-  }
-  return res;
+function onResponse(raw) {
+  return raw;
 }`)
 
   const handleSave = () => {

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from "react"
-import { Search, X, Settings2, Trash2, Wifi, WifiOff, Play, ArrowUp, ArrowDown, Crosshair, Layout, ListFilter } from "lucide-react"
+import { Search, X, Settings2, Trash2, Wifi, WifiOff, Play, ArrowUp, ArrowDown, Crosshair, Layout, ListFilter, Power, Radio, Activity, Server, ShieldCheck, Download, Upload, FileKey2, RefreshCw } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -29,8 +29,8 @@ import { CyberPanel } from "@/components/proxy/ui/cyber-panel"
 import { MonoInput } from "@/components/proxy/ui/mono-input"
 import type { TrafficEvent, SearchConfig, Rule } from "@/types/proxy"
 import {
-  ALL_COLUMNS, DEFAULT_VISIBLE,
-  useTrafficTable, TrafficTable, ColSettingsPanel
+  ALL_COLUMNS, DEFAULT_VISIBLE, formatBytes,
+  useTrafficTable, TrafficTable, ColSettingsPanel, buildHAR, downloadHAR
 } from "./traffic-table"
 import {
   ContextMenu,
@@ -40,6 +40,8 @@ import {
   type CtxState
 } from "./traffic-shared"
 import { buildURL } from "./traffic-utils"
+// @ts-ignore
+import * as App from "@wailsjs/go/backend/App"
 
 
 // ─── Shared Logic Imports ───────────────────────────────────────────────────
@@ -328,7 +330,7 @@ function HistoryTab() {
                             <Button
                               variant={isInterceptEnabled ? "default" : "ghost"}
                               size="icon"
-                              className={`size-6 shrink-0 ${isInterceptEnabled ? "bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/30 border" : "text-muted-foreground hover:bg-muted/50"}`}
+                              className={`size-6 shrink-0 ${isInterceptEnabled ? "bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-magenta)] hover:bg-[var(--tokyo-magenta-soft)] border-[var(--tokyo-border-magenta)] border" : "text-[var(--tokyo-cyan)]/55 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]"}`}
                               onClick={() => {
                                 if (requestBreakpoint) {
                                   setRequestBreakpoint(false)
@@ -348,18 +350,18 @@ function HistoryTab() {
 
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant={!isLive ? "default" : "ghost"} size="icon" className={`size-6 shrink-0 ${!isLive ? "bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/30 border" : "text-muted-foreground hover:bg-muted/50"}`} onClick={() => setIsLive(!isLive)}>
+                            <Button variant={!isLive ? "default" : "ghost"} size="icon" className={`size-6 shrink-0 ${!isLive ? "bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-magenta)] hover:bg-[var(--tokyo-magenta-soft)] border-[var(--tokyo-border-magenta)] border" : "text-[var(--tokyo-cyan)]/55 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]"}`} onClick={() => setIsLive(!isLive)}>
                               {isLive ? <div className="flex gap-[2px] items-center justify-center"><div className="w-[1.5px] h-2 bg-current rounded-sm" /><div className="w-[1.5px] h-2 bg-current rounded-sm" /></div> : <Play className="size-2.5 fill-current ml-0.5" />}
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom" className="text-[10px]">{isLive ? "Pause" : "Resume"}</TooltipContent>
                         </Tooltip>
 
-                        <div className="w-px h-3 bg-border/40 mx-0.5" />
+                        <div className="w-px h-3 bg-[var(--tokyo-border-cyan)] mx-0.5" />
 
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className={`size-6 shrink-0 transition-colors ${isInspectorVisible ? "text-[var(--accent)] bg-sky-500/10" : "hover:text-foreground"}`} onClick={() => setIsInspectorVisible(!isInspectorVisible)}>
+                            <Button variant="ghost" size="icon" className={`size-6 shrink-0 transition-colors ${isInspectorVisible ? "text-[var(--tokyo-magenta)] bg-[var(--tokyo-magenta-soft)]" : "text-[var(--tokyo-cyan)]/55 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]"}`} onClick={() => setIsInspectorVisible(!isInspectorVisible)}>
                               <Layout className="size-3" />
                             </Button>
                           </TooltipTrigger>
@@ -370,7 +372,7 @@ function HistoryTab() {
                           <TooltipTrigger asChild>
                             <DropdownMenu open={colSettingsOpen} onOpenChange={setColSettingsOpen}>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="size-6 shrink-0 hover:text-foreground">
+                                <Button variant="ghost" size="icon" className="size-6 shrink-0 text-[var(--tokyo-cyan)]/55 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]">
                                   <Settings2 className="size-3" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -386,7 +388,7 @@ function HistoryTab() {
 
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="size-6 shrink-0 hover:text-red-400" onClick={handleDeleteRequest}>
+                            <Button variant="ghost" size="icon" className="size-6 shrink-0 text-[var(--tokyo-cyan)]/55 hover:bg-[var(--tokyo-magenta-soft)] hover:text-[var(--tokyo-magenta)]" onClick={handleDeleteRequest}>
                               <Trash2 className="size-3" />
                             </Button>
                           </TooltipTrigger>
@@ -398,10 +400,10 @@ function HistoryTab() {
                   }
                 >
                   <div className="flex flex-col h-full overflow-hidden">
-                    <div className="flex items-center gap-1.5 border-b border-border/20 px-2 py-1.5 shrink-0 bg-muted/5 overflow-hidden flex-wrap select-none">
+                    <div className="flex items-center gap-1.5 border-b border-[var(--tokyo-border-cyan)] px-2 py-1.5 shrink-0 bg-[var(--tokyo-panel-2)] overflow-hidden flex-wrap select-none">
                       <Popover open={filterPanelOpen} onOpenChange={setFilterPanelOpen}>
                         <PopoverTrigger asChild>
-                          <Button variant="ghost" size="icon" className={`size-7 ${filterCfg.enabled ? 'text-primary bg-primary/10' : 'text-muted-foreground/50'}`} title={`Filter: ${filterCfg.enabled ? "Active" : "Off"}`}>
+                          <Button variant="ghost" size="icon" className={`size-7 ${filterCfg.enabled ? 'text-[var(--tokyo-magenta)] bg-[var(--tokyo-magenta-soft)]' : 'text-[var(--tokyo-cyan)]/55 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]'}`} title={`Filter: ${filterCfg.enabled ? "Active" : "Off"}`}>
                             <ListFilter className="size-4" />
                           </Button>
                         </PopoverTrigger>
@@ -421,13 +423,13 @@ function HistoryTab() {
                         />
                         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-20">
                           {searchRaw && (
-                            <button onClick={clearSearch} className="text-muted-foreground hover:text-foreground p-0.5">
+                            <button onClick={clearSearch} className="text-[var(--tokyo-cyan)]/55 hover:text-[var(--tokyo-magenta)] p-0.5">
                               <X className="size-3.5" />
                             </button>
                           )}
                           <Popover>
                             <PopoverTrigger asChild>
-                              <button className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-muted/50">
+                              <button className="text-[var(--tokyo-cyan)]/55 hover:text-[var(--tokyo-magenta)] p-0.5 rounded hover:bg-[var(--tokyo-magenta-soft)]">
                                 <Settings2 className="size-3.5" />
                               </button>
                             </PopoverTrigger>
@@ -438,7 +440,7 @@ function HistoryTab() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex-1 min-h-0 flex flex-col bg-background/50">
+                    <div className="flex-1 min-h-0 flex flex-col bg-[var(--tokyo-panel)]">
                       <TrafficTable
                         tableState={tableState}
                         containerRef={containerRef}
@@ -456,7 +458,7 @@ function HistoryTab() {
 
               {showInspector && (
                 <ResizableHandle id="history-main-handle-v2"
-                  className="w-1 bg-transparent hover:bg-sky-500/20 transition-colors z-50 cursor-col-resize flex items-center justify-center group relative overflow-visible"
+                  className="w-1 bg-transparent hover:bg-[var(--tokyo-cyan-soft)] transition-colors z-50 cursor-col-resize flex items-center justify-center group relative overflow-visible"
                 />
               )}
 
@@ -473,10 +475,10 @@ function HistoryTab() {
                     className="h-full"
                     actions={
                       <div className="flex items-center gap-1 pr-1">
-                        <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:bg-sky-500/10 hover:text-[var(--accent)]" onClick={() => navigateInspector(-1)}>
+                        <Button variant="ghost" size="icon" className="size-6 text-[var(--tokyo-cyan)]/55 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]" onClick={() => navigateInspector(-1)}>
                           <ArrowUp className="size-3" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:bg-sky-500/10 hover:text-[var(--accent)]" onClick={() => navigateInspector(1)}>
+                        <Button variant="ghost" size="icon" className="size-6 text-[var(--tokyo-cyan)]/55 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]" onClick={() => navigateInspector(1)}>
                           <ArrowDown className="size-3" />
                         </Button>
                       </div>
@@ -486,16 +488,16 @@ function HistoryTab() {
                       {layout === "combined" ? (
                         <div className="flex flex-col h-full overflow-hidden">
                           <Tabs defaultValue="request" className="flex-1 flex flex-col overflow-hidden">
-                            <div className={`h-8 border-b border-border/20 bg-muted/5 flex items-center px-1 shrink-0 select-none ${!selectedReq ? 'opacity-30 pointer-events-none' : ''}`}>
+                            <div className={`h-8 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] flex items-center px-1 shrink-0 select-none ${!selectedReq ? 'opacity-30 pointer-events-none' : ''}`}>
                               <TabsList className="h-6 bg-transparent gap-0 p-0">
-                                <TabsTrigger value="request" className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-sky-500/10 data-[state=active]:text-[var(--accent)] rounded-none border-0">Request</TabsTrigger>
-                                <TabsTrigger value="response" disabled={!selectedReq || (selectedReq as TrafficEvent).status_code === 0} className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-sky-500/10 data-[state=active]:text-[var(--accent)] rounded-none border-0">Response</TabsTrigger>
+                                <TabsTrigger value="request" className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-[var(--tokyo-magenta-soft)] data-[state=active]:text-[var(--tokyo-magenta)] text-[var(--tokyo-cyan)]/55 rounded-none border-0">Request</TabsTrigger>
+                                <TabsTrigger value="response" disabled={!selectedReq || (selectedReq as TrafficEvent).status_code === 0} className="h-full text-[10px] uppercase tracking-tight px-3 data-[state=active]:bg-[var(--tokyo-magenta-soft)] data-[state=active]:text-[var(--tokyo-magenta)] text-[var(--tokyo-cyan)]/55 rounded-none border-0">Response</TabsTrigger>
                               </TabsList>
-                              <div className="ml-auto flex items-center gap-1 border-l border-border/20 pl-2 mr-1 my-1">
+                              <div className="ml-auto flex items-center gap-1 border-l border-[var(--tokyo-border-cyan)] pl-2 mr-1 my-1">
                                 <TooltipProvider delayDuration={300}>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="size-5 rounded-sm bg-sky-500/20 text-[var(--accent)]">
+                                      <Button variant="ghost" size="icon" className="size-5 rounded-sm bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-magenta)]">
                                         <div className="w-3 h-3 border border-current rounded-[1px] relative flex flex-col pt-[2px]"><div className="w-full h-px bg-current opacity-50" /></div>
                                       </Button>
                                     </TooltipTrigger>
@@ -504,7 +506,7 @@ function HistoryTab() {
 
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="size-5 rounded-sm text-muted-foreground/40 hover:text-foreground" onClick={() => setLayout('horizontal')}>
+                                      <Button variant="ghost" size="icon" className="size-5 rounded-sm text-[var(--tokyo-cyan)]/45 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]" onClick={() => setLayout('horizontal')}>
                                         <div className="w-3 h-3 border border-current rounded-[1px] flex flex-row">
                                           <div className="h-full w-[50%] border-r border-current opacity-50" />
                                         </div>
@@ -525,13 +527,13 @@ function HistoryTab() {
                         </div>
                       ) : (
                         <div className="flex-1 flex flex-col h-full overflow-hidden">
-                          <div className={`h-8 border-b border-border/20 bg-muted/5 flex items-center px-1 shrink-0 ${!selectedReq ? 'opacity-30 pointer-events-none' : ''}`}>
-                            <span className="text-[10px] uppercase tracking-tight px-3 text-muted-foreground">Split View</span>
-                            <div className="ml-auto flex items-center gap-1 border-l border-border/20 pl-2 mr-1 my-1">
-                              <Button variant="ghost" size="icon" className="size-5 rounded-sm text-muted-foreground/40 hover:text-foreground" onClick={() => setLayout('combined')} title="Tabs view">
+                          <div className={`h-8 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] flex items-center px-1 shrink-0 ${!selectedReq ? 'opacity-30 pointer-events-none' : ''}`}>
+                            <span className="text-[10px] uppercase tracking-tight px-3 text-[var(--tokyo-cyan)]/60">Split View</span>
+                            <div className="ml-auto flex items-center gap-1 border-l border-[var(--tokyo-border-cyan)] pl-2 mr-1 my-1">
+                              <Button variant="ghost" size="icon" className="size-5 rounded-sm text-[var(--tokyo-cyan)]/45 hover:bg-[var(--tokyo-cyan-soft)] hover:text-[var(--tokyo-cyan)]" onClick={() => setLayout('combined')} title="Tabs view">
                                 <div className="w-3 h-3 border border-current rounded-[1px] relative flex flex-col pt-[2px]"><div className="w-full h-px bg-current opacity-50" /></div>
                               </Button>
-                              <Button variant="ghost" size="icon" className="size-5 rounded-sm bg-sky-500/20 text-[var(--accent)]" title="Split view">
+                              <Button variant="ghost" size="icon" className="size-5 rounded-sm bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-magenta)]" title="Split view">
                                 <div className="w-3 h-3 border border-current rounded-[1px] flex flex-row">
                                   <div className="h-full w-[50%] border-r border-current opacity-50" />
                                 </div>
@@ -540,17 +542,17 @@ function HistoryTab() {
                           </div>
                           <ResizablePanelGroup direction="vertical" id="history-split-group-v2" className="flex-1 h-full min-w-0">
                             <ResizablePanel id="history-req-panel-v2" defaultSize={50} minSize={10} className="flex flex-col min-w-0 overflow-hidden">
-                              <div className="h-6 shrink-0 bg-muted/10 border-b border-border/20 flex items-center px-3 select-none">
-                                <span className="text-[9px] uppercase tracking-widest text-[var(--accent)]/70 font-medium">Request</span>
+                              <div className="h-6 shrink-0 bg-[var(--tokyo-panel-2)] border-b border-[var(--tokyo-border-cyan)] flex items-center px-3 select-none">
+                                <span className="text-[9px] uppercase tracking-widest text-[var(--tokyo-cyan)]/70 font-medium">Request</span>
                               </div>
                               <Inspector content={selectedReq ? (selectedReq as TrafficEvent).request_raw || "" : ""} className="flex-1 w-full" disabled={!selectedReq} />
                             </ResizablePanel>
                             <ResizableHandle id="history-split-handle-v2"
-                              className="h-1 bg-transparent hover:bg-sky-500/20 transition-colors z-50 flex items-center justify-center cursor-row-resize"
+                              className="h-1 bg-transparent hover:bg-[var(--tokyo-cyan-soft)] transition-colors z-50 flex items-center justify-center cursor-row-resize"
                             />
                             <ResizablePanel id="history-res-panel-v2" defaultSize={50} minSize={10} className="flex flex-col min-w-0 overflow-hidden">
-                              <div className="h-6 shrink-0 bg-muted/10 border-b border-border/20 flex items-center px-3 select-none">
-                                <span className={`text-[9px] uppercase tracking-widest font-medium ${(!selectedReq || (selectedReq as TrafficEvent).status_code === 0) ? 'text-muted-foreground/30' : 'text-emerald-400/70'}`}>Response</span>
+                              <div className="h-6 shrink-0 bg-[var(--tokyo-panel-2)] border-b border-[var(--tokyo-border-cyan)] flex items-center px-3 select-none">
+                                <span className={`text-[9px] uppercase tracking-widest font-medium ${(!selectedReq || (selectedReq as TrafficEvent).status_code === 0) ? 'text-[var(--tokyo-cyan)]/30' : 'text-[var(--tokyo-green)]/70'}`}>Response</span>
                               </div>
                               <Inspector content={selectedReq ? (selectedReq as TrafficEvent).response_raw || "" : ""} className="flex-1 min-w-0" isResponse={true} disabled={!selectedReq || (selectedReq as TrafficEvent).status_code === 0} />
                             </ResizablePanel>
@@ -613,7 +615,7 @@ function RulesTab() {
   const colors = CATEGORY_COLORS[activeCategory] || CATEGORY_COLORS.proxy
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-background/50 overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 bg-[var(--tokyo-panel)] overflow-hidden">
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={60} minSize={30}>
           <div className="flex flex-col h-full p-2 gap-2">
@@ -625,8 +627,8 @@ function RulesTab() {
                 <div className="flex items-center gap-2 pr-1">
                   <Button
                     size="sm"
-                    className="h-6 text-[9px] font-black uppercase tracking-widest border-0 px-3 rounded-sm transition-all shadow-[0_0_10px_rgba(0,0,0,0.5)]"
-                    style={{ backgroundColor: colors.accent, color: 'black' }}
+                    className="h-6 text-[9px] font-black uppercase tracking-widest border-0 px-3 rounded-sm transition-all"
+                    style={{ backgroundColor: 'var(--tokyo-magenta)', color: 'white', boxShadow: '0 0 14px var(--accent-glow)' }}
                     onClick={() => {
                       setEditingRule({
                         id: crypto.randomUUID(),
@@ -651,7 +653,7 @@ function RulesTab() {
             >
               <div className="flex flex-col h-full overflow-hidden">
                 {/* Category Selector */}
-                <div className="flex border-b border-border/10 bg-muted/5 shrink-0 h-9">
+                <div className="flex border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] shrink-0 h-9">
                   {(['proxy', 'intercept', 'history'] as const).map(cat => {
                     const catColors = CATEGORY_COLORS[cat]
                     const isActive = activeCategory === cat
@@ -661,15 +663,15 @@ function RulesTab() {
                         onClick={() => setActiveCategory(cat)}
                         className={`flex-1 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative ${
                           isActive
-                            ? catColors.text + ' bg-white/5'
-                            : 'text-muted-foreground/40 hover:text-muted-foreground hover:bg-white/5'
+                            ? 'text-[var(--tokyo-magenta)] bg-[var(--tokyo-magenta-soft)]'
+                            : 'text-[var(--tokyo-cyan)]/50 hover:text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)]'
                         }`}
                       >
                         {cat}
                         {isActive && (
                           <div
                             className="absolute bottom-0 left-0 right-0 h-0.5"
-                            style={{ backgroundColor: catColors.accent }}
+                            style={{ backgroundColor: 'var(--tokyo-magenta)' }}
                           />
                         )}
                       </button>
@@ -678,23 +680,23 @@ function RulesTab() {
                 </div>
 
                 {activeCategory === 'intercept' && (
-                  <div className="p-3 px-5 border-b border-border/10 bg-sky-500/[0.02] flex items-center justify-between gap-4 shrink-0">
+                  <div className="p-3 px-5 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-cyan-soft)] flex items-center justify-between gap-4 shrink-0">
                     <div className="flex flex-col gap-0.5">
-                      <div className="text-[10px] font-bold text-foreground/80 uppercase tracking-wider">Conditional Intercept</div>
-                      <div className="text-[9px] text-muted-foreground/60 leading-tight">Apply rules contextually. Breakpoints must be active.</div>
+                      <div className="text-[10px] font-bold text-[var(--tokyo-cyan)] uppercase tracking-wider">Conditional Intercept</div>
+                      <div className="text-[9px] text-[var(--tokyo-cyan)]/60 leading-tight">Apply rules contextually. Breakpoints must be active.</div>
                     </div>
                     <div className="flex items-center gap-4">
                       <label className="flex items-center gap-2 cursor-pointer group" onClick={toggleFollowProxy}>
-                        <div className="size-3 border border-sky-500/30 flex items-center justify-center transition-all group-hover:border-sky-500">
-                          {followProxyRules && <div className="size-1 bg-sky-500 shadow-[0_0_5px_rgba(14,165,233,0.5)]" />}
+                        <div className="size-3 border border-[var(--tokyo-border-cyan)] flex items-center justify-center transition-all group-hover:border-[var(--tokyo-cyan)]">
+                          {followProxyRules && <div className="size-1 bg-[var(--tokyo-cyan)] shadow-[0_0_5px_rgba(0,240,255,0.5)]" />}
                         </div>
-                        <span className="text-[9px] font-bold text-muted-foreground group-hover:text-[var(--accent)] uppercase tracking-tighter">Follow Proxy</span>
+                        <span className="text-[9px] font-bold text-[var(--tokyo-cyan)]/65 group-hover:text-[var(--tokyo-magenta)] uppercase tracking-tighter">Follow Proxy</span>
                       </label>
                     </div>
                   </div>
                 )}
 
-                <div className="h-7 border-b border-border/20 bg-muted/5 flex items-center px-4 shrink-0 text-[10px] uppercase tracking-widest text-muted-foreground/40 font-bold">
+                <div className="h-7 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-2)] flex items-center px-4 shrink-0 text-[10px] uppercase tracking-widest text-[var(--tokyo-cyan)]/55 font-bold">
                   <div className="w-10">Act</div>
                   <div className="flex-1">Description</div>
                   <div className="w-[100px]">Type</div>
@@ -704,35 +706,35 @@ function RulesTab() {
 
                 <div className="flex-1 overflow-auto h-full scrollbar-cyber">
                   {filteredRules.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center opacity-10 py-12 select-none">
+                    <div className="h-full flex flex-col items-center justify-center opacity-40 py-12 select-none text-[var(--tokyo-cyan)]">
                       <Settings2 className="size-12 mb-2" />
                       <p className="text-[10px] font-mono uppercase tracking-[0.2em]">Zero {activeCategory} rules</p>
                     </div>
                   ) : (
-                    <div className="divide-y divide-border/10">
+                    <div className="divide-y divide-[var(--tokyo-border-cyan)]">
                       {filteredRules.map(rule => (
                         <div
                           key={rule.id}
                           onClick={() => setEditingRule(rule)}
-                          className={`flex items-center px-4 h-9 text-[11px] font-mono group hover:bg-white/5 transition-colors cursor-pointer border-l-2 ${
-                            rule.enabled ? 'border-sky-500/50' : 'border-transparent opacity-40'
-                          } ${editingRule?.id === rule.id ? 'bg-primary/5 border-primary mt-[-1px] mb-[-1px] z-10' : ''}`}
+                          className={`flex items-center px-4 h-9 text-[11px] font-mono group hover:bg-[var(--tokyo-cyan-soft)] transition-colors cursor-pointer border-l-2 ${
+                            rule.enabled ? 'border-[var(--tokyo-cyan)]' : 'border-transparent opacity-40'
+                          } ${editingRule?.id === rule.id ? 'bg-[var(--tokyo-magenta-soft)] border-[var(--tokyo-magenta)] mt-[-1px] mb-[-1px] z-10' : ''}`}
                         >
                           <div className="w-10 flex items-center" onClick={e => e.stopPropagation()}>
                             <button
                               onClick={() => handleToggle(rule.id)}
                               className={`size-4 border flex items-center justify-center transition-colors ${
-                                rule.enabled ? 'bg-sky-500 border-[var(--accent)] text-white shadow-[0_0_8px_rgba(14,165,233,0.4)]' : 'border-border/40 hover:border-sky-500/50'
+                                rule.enabled ? 'bg-[var(--tokyo-cyan)] border-[var(--tokyo-cyan)] text-[#0a0a0f] shadow-[0_0_8px_rgba(0,240,255,0.4)]' : 'border-[var(--tokyo-border-cyan)] hover:border-[var(--tokyo-cyan)]'
                               }`}
                             >
                               {rule.enabled && <div className="size-1.5 bg-current rounded-full" />}
                             </button>
                           </div>
-                          <div className={`flex-1 truncate pr-4 text-foreground/80 font-bold group-hover:text-[var(--accent)] transition-colors ${editingRule?.id === rule.id ? 'text-[var(--accent)]' : ''}`}>
+                          <div className={`flex-1 truncate pr-4 text-[var(--tokyo-cyan)]/80 font-bold group-hover:text-[var(--tokyo-magenta)] transition-colors ${editingRule?.id === rule.id ? 'text-[var(--tokyo-magenta)]' : ''}`}>
                             {rule.name}
                           </div>
-                          <div className="w-[100px] text-[10px] uppercase font-black tracking-widest text-[var(--accent)]/60 font-mono italic">{rule.type}</div>
-                          <div className="w-[120px] text-[10px] uppercase font-bold tracking-tight text-muted-foreground/50">{rule.scope.replace('_', ' ')}</div>
+                          <div className="w-[100px] text-[10px] uppercase font-black tracking-widest text-[var(--tokyo-cyan)]/70 font-mono italic">{rule.type}</div>
+                          <div className="w-[120px] text-[10px] uppercase font-bold tracking-tight text-[var(--tokyo-cyan)]/50">{rule.scope.replace('_', ' ')}</div>
                           <div className="w-16 flex items-center justify-end gap-1 opacity-10 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                             <button onClick={() => handleDelete(rule.id)} className="p-1 hover:text-red-400"><Trash2 className="size-3" /></button>
                           </div>
@@ -775,31 +777,31 @@ interface RuleModalProps {
 
 const CATEGORY_COLORS: Record<string, { accent: string; glow: string; bg: string; border: string; text: string; pill: string; pillActive: string }> = {
   proxy: {
-    accent: 'rgb(14, 165, 233)',
-    glow: 'rgba(14, 165, 233, 0.6)',
-    bg: 'bg-sky-500/5',
-    border: 'border-sky-500/30',
-    text: 'text-[var(--accent)]',
-    pill: 'border-sky-500/20 text-[var(--accent)]/50 hover:border-sky-500/40 hover:text-[var(--accent)]/80',
-    pillActive: 'bg-sky-500/15 border-sky-500/60 text-[var(--accent)] shadow-[0_0_12px_rgba(14,165,233,0.2)]',
+    accent: 'var(--tokyo-magenta)',
+    glow: 'rgba(255, 0, 170, 0.6)',
+    bg: 'bg-[var(--tokyo-cyan-soft)]',
+    border: 'border-[var(--tokyo-border-cyan)]',
+    text: 'text-[var(--tokyo-cyan)]',
+    pill: 'border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)]/60 hover:border-[var(--tokyo-cyan)] hover:text-[var(--tokyo-cyan)]',
+    pillActive: 'bg-[var(--tokyo-magenta-soft)] border-[var(--tokyo-magenta)] text-[var(--tokyo-magenta)] shadow-[0_0_12px_rgba(255,0,170,0.2)]',
   },
   intercept: {
-    accent: 'rgb(239, 68, 68)',
-    glow: 'rgba(239, 68, 68, 0.6)',
-    bg: 'bg-red-500/5',
-    border: 'border-red-500/30',
-    text: 'text-red-400',
-    pill: 'border-red-500/20 text-red-400/50 hover:border-red-500/40 hover:text-red-400/80',
-    pillActive: 'bg-red-500/15 border-red-500/60 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.2)]',
+    accent: 'var(--tokyo-magenta)',
+    glow: 'rgba(255, 0, 170, 0.6)',
+    bg: 'bg-[var(--tokyo-cyan-soft)]',
+    border: 'border-[var(--tokyo-border-cyan)]',
+    text: 'text-[var(--tokyo-cyan)]',
+    pill: 'border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)]/60 hover:border-[var(--tokyo-cyan)] hover:text-[var(--tokyo-cyan)]',
+    pillActive: 'bg-[var(--tokyo-magenta-soft)] border-[var(--tokyo-magenta)] text-[var(--tokyo-magenta)] shadow-[0_0_12px_rgba(255,0,170,0.2)]',
   },
   history: {
-    accent: 'rgb(168, 85, 247)',
-    glow: 'rgba(168, 85, 247, 0.6)',
-    bg: 'bg-purple-500/5',
-    border: 'border-purple-500/30',
-    text: 'text-purple-400',
-    pill: 'border-purple-500/20 text-purple-400/50 hover:border-purple-500/40 hover:text-purple-400/80',
-    pillActive: 'bg-purple-500/15 border-purple-500/60 text-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.2)]',
+    accent: 'var(--tokyo-magenta)',
+    glow: 'rgba(255, 0, 170, 0.6)',
+    bg: 'bg-[var(--tokyo-cyan-soft)]',
+    border: 'border-[var(--tokyo-border-cyan)]',
+    text: 'text-[var(--tokyo-cyan)]',
+    pill: 'border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)]/60 hover:border-[var(--tokyo-cyan)] hover:text-[var(--tokyo-cyan)]',
+    pillActive: 'bg-[var(--tokyo-magenta-soft)] border-[var(--tokyo-magenta)] text-[var(--tokyo-magenta)] shadow-[0_0_12px_rgba(255,0,170,0.2)]',
   },
 }
 
@@ -869,18 +871,18 @@ function RuleEditor({ rule, category, onClose, onSave }: RuleModalProps) {
         </button>
       }
     >
-      <div className="flex flex-col h-full bg-zinc-950/40">
+      <div className="flex flex-col h-full bg-[var(--tokyo-panel)]">
         <ScrollArea className="flex-1">
           <div className="p-5 space-y-6">
 
             {/* Rule Name */}
             <div className="space-y-2">
-              <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50 font-black">Rule Name</label>
+              <label className="text-[9px] uppercase tracking-[0.2em] text-[var(--tokyo-cyan)]/65 font-black">Rule Name</label>
               <Input
                 id="rule-name"
                 defaultValue={rule?.name || ""}
                 placeholder="e.g. Identity Cloak"
-                className="h-10 bg-zinc-900/40 border-border/10 text-[13px] font-mono rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 placeholder:text-muted-foreground/20"
+                className="h-10 bg-[var(--tokyo-panel-2)] border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] text-[13px] font-mono rounded-none focus-visible:ring-1 focus-visible:ring-[var(--tokyo-magenta)] focus-visible:ring-offset-0 placeholder:text-[var(--tokyo-cyan)]/25"
                 autoFocus
                 key={rule?.id}
               />
@@ -888,19 +890,19 @@ function RuleEditor({ rule, category, onClose, onSave }: RuleModalProps) {
 
             {/* Type Selector — Pills */}
             <div className="space-y-2.5">
-              <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50 font-black">Operation Type</label>
+              <label className="text-[9px] uppercase tracking-[0.2em] text-[var(--tokyo-cyan)]/65 font-black">Operation Type</label>
               <div className="flex flex-col gap-1.5">
                 {typeOptions.map(opt => (
                   <button
                     key={opt.value}
                     onClick={() => setType(opt.value)}
                     className={`flex items-center gap-3 py-2 px-3 border transition-all duration-200 text-left ${
-                      type === opt.value ? colors.pillActive : colors.pill + ' bg-zinc-900/20'
+                      type === opt.value ? colors.pillActive : colors.pill + ' bg-[var(--tokyo-panel-2)]'
                     }`}
                   >
                     <div className="flex-1">
                       <div className="text-[10px] font-black uppercase tracking-widest">{opt.label}</div>
-                      <div className={`text-[9px] mt-0.5 ${type === opt.value ? 'text-muted-foreground/70' : 'text-muted-foreground/30'}`}>{opt.desc}</div>
+                      <div className={`text-[9px] mt-0.5 ${type === opt.value ? 'text-[var(--tokyo-cyan)]/75' : 'text-[var(--tokyo-cyan)]/35'}`}>{opt.desc}</div>
                     </div>
                     {type === opt.value && <div className="size-1.5 rounded-full animate-pulse" style={{ backgroundColor: colors.accent, boxShadow: `0 0 10px ${colors.glow}` }} />}
                   </button>
@@ -910,14 +912,14 @@ function RuleEditor({ rule, category, onClose, onSave }: RuleModalProps) {
 
             {/* Scope Selector — Compact Grid */}
             <div className="space-y-2.5">
-              <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50 font-black">Target Scope</label>
+              <label className="text-[9px] uppercase tracking-[0.2em] text-[var(--tokyo-cyan)]/65 font-black">Target Scope</label>
               <div className="grid grid-cols-3 gap-1">
                 {SCOPE_OPTIONS.map(opt => (
                   <button
                     key={opt.value}
                     onClick={() => setScope(opt.value)}
                     className={`px-1 py-2 border text-[9px] font-black uppercase tracking-wider transition-all duration-200 ${
-                      scope === opt.value ? colors.pillActive : colors.pill + ' bg-zinc-900/20'
+                      scope === opt.value ? colors.pillActive : colors.pill + ' bg-[var(--tokyo-panel-2)]'
                     }`}
                   >
                     {opt.label}
@@ -929,28 +931,28 @@ function RuleEditor({ rule, category, onClose, onSave }: RuleModalProps) {
             {/* Conditional Fields */}
             {type === 'Delay' && (
               <div className="space-y-2 animate-in slide-in-from-top-1 fade-in duration-200">
-                <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50 font-black">Latency (ms)</label>
+                <label className="text-[9px] uppercase tracking-[0.2em] text-[var(--tokyo-cyan)]/65 font-black">Latency (ms)</label>
                 <div className="relative">
                   <Input
                     id="rule-delay"
                     type="number"
                     defaultValue={rule?.delay_ms || 500}
-                    className="h-10 bg-zinc-900/40 border-border/10 text-[13px] font-mono rounded-none pr-14"
+                    className="h-10 bg-[var(--tokyo-panel-2)] border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] text-[13px] font-mono rounded-none pr-14"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-muted-foreground/20 tracking-wider">MS</div>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-[var(--tokyo-cyan)]/35 tracking-wider">MS</div>
                 </div>
               </div>
             )}
 
             {/* Pattern Field */}
             <div className="space-y-2">
-              <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50 font-black">Match Expression</label>
+              <label className="text-[9px] uppercase tracking-[0.2em] text-[var(--tokyo-cyan)]/65 font-black">Match Expression</label>
               <div className="relative">
                 <Input
                   id="rule-pattern"
                   defaultValue={rule?.pattern || ""}
                   placeholder="e.g. /api/auth.*"
-                  className="h-10 bg-zinc-900/40 border-border/10 text-[13px] font-mono rounded-none pr-16"
+                  className="h-10 bg-[var(--tokyo-panel-2)] border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] text-[13px] font-mono rounded-none pr-16"
                   key={rule?.id + '-pattern'}
                 />
                 <div className={`absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black tracking-widest ${colors.text} opacity-30`}>REGEX</div>
@@ -960,12 +962,12 @@ function RuleEditor({ rule, category, onClose, onSave }: RuleModalProps) {
             {/* Replacement Field */}
             {type === 'MatchReplace' && (
               <div className="space-y-2 animate-in slide-in-from-top-1 fade-in duration-200">
-                <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50 font-black">Substitution</label>
+                <label className="text-[9px] uppercase tracking-[0.2em] text-[var(--tokyo-cyan)]/65 font-black">Substitution</label>
                 <Input
                   id="rule-replacement"
                   defaultValue={rule?.replacement || ""}
                   placeholder="replacement_value"
-                  className="h-10 bg-zinc-900/40 border-border/10 text-[13px] font-mono rounded-none"
+                  className="h-10 bg-[var(--tokyo-panel-2)] border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] text-[13px] font-mono rounded-none"
                   key={rule?.id + '-replacement'}
                 />
               </div>
@@ -974,9 +976,9 @@ function RuleEditor({ rule, category, onClose, onSave }: RuleModalProps) {
         </ScrollArea>
 
         {/* ── Footer Action ── */}
-        <div className={`px-5 py-4 border-t ${colors.border} bg-zinc-900/40 flex flex-col gap-3 shrink-0`}>
+        <div className={`px-5 py-4 border-t ${colors.border} bg-[var(--tokyo-panel-2)] flex flex-col gap-3 shrink-0`}>
           <Button
-            className="w-full h-10 text-[11px] font-black uppercase tracking-[0.2em] text-black rounded-none shadow-lg transition-all active:scale-[0.98]"
+            className="w-full h-10 text-[11px] font-black uppercase tracking-[0.2em] text-white rounded-none shadow-lg transition-all active:scale-[0.98]"
             style={{ backgroundColor: colors.accent, boxShadow: `0 0 15px ${colors.glow.replace('0.6', '0.2')}` }}
             onClick={handleSave}
           >
@@ -996,27 +998,241 @@ function RuleEditor({ rule, category, onClose, onSave }: RuleModalProps) {
   )
 }
 
-export function ProxyModule() {
+export function ProxyModule({ defaultTab = "overview" }: { defaultTab?: "overview" | "history" | "intercept" | "match" }) {
   return (
-    <Tabs defaultValue="history" className="flex h-full flex-col overflow-hidden">
-      <div className="border-b px-3 shrink-0 bg-background/40 backdrop-blur-md z-30">
-        <TabsList className="h-9 bg-muted/5 gap-1 p-1 border-b-0 rounded-lg">
-          <TabsTrigger value="history" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-sky-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">
-            History
-          </TabsTrigger>
-          <TabsTrigger value="intercept" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-red-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">
-            Intercept
-          </TabsTrigger>
-          <TabsTrigger value="match" className="h-7 text-[10px] font-bold uppercase tracking-widest px-4 data-[state=active]:bg-purple-500 data-[state=active]:text-white text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 rounded-md transition-all duration-200">
-            Rules
-          </TabsTrigger>
-        </TabsList>
-      </div>
-      <TabsContent value="history" className="flex-1 m-0 overflow-hidden"><HistoryTab /></TabsContent>
+    <Tabs defaultValue={defaultTab} className="flex h-full flex-col overflow-hidden">
+
+      <TabsContent value="overview" className="flex-1 m-0 overflow-hidden"><ProxyOverview /></TabsContent>
       <TabsContent value="intercept" className="flex-1 m-0 overflow-hidden"><InterceptTabV2 /></TabsContent>
+      <TabsContent value="history" className="flex-1 m-0 overflow-hidden"><HistoryTab /></TabsContent>
       <TabsContent value="match" className="flex-1 m-0 overflow-hidden"><RulesTab /></TabsContent>
     </Tabs>
   )
 }
 
 
+function ProxyOverview() {
+  const {
+    requests,
+    telemetry,
+    isConnected,
+    isLive,
+    setIsLive,
+    isInterceptEnabled,
+    setIsInterceptEnabled,
+    clearHistory,
+  } = useProxyWebsocket()
+  const [proxyPort, setProxyPort] = useState(8081)
+  const [proxyHost, setProxyHost] = useState("127.0.0.1")
+  const [isProxyRunning, setIsProxyRunning] = useState(true)
+  const [isRestarting, setIsRestarting] = useState(false)
+  const [isGeneratingCert, setIsGeneratingCert] = useState(false)
+
+  const refreshProxySettings = useCallback(async () => {
+    if (App.GetProxySettings) {
+      const settings = await App.GetProxySettings()
+      if (settings?.host) setProxyHost(String(settings.host))
+      else if (settings?.address) setProxyHost(String(settings.address).replace(/^:/, "127.0.0.1:").split(":")[0] || "127.0.0.1")
+      if (settings?.port) setProxyPort(Number(settings.port))
+      if (typeof settings?.running === "boolean") setIsProxyRunning(settings.running)
+    } else if (App.IsProxyRunning) {
+      setIsProxyRunning(await App.IsProxyRunning())
+    }
+  }, [])
+
+  useEffect(() => {
+    refreshProxySettings().catch(() => undefined)
+  }, [refreshProxySettings])
+
+  const restartProxy = async () => {
+    setIsRestarting(true)
+    try {
+      if (App.RestartProxy) await App.RestartProxy()
+      await refreshProxySettings()
+      setIsLive(true)
+    } finally {
+      setTimeout(() => setIsRestarting(false), 500)
+    }
+  }
+
+  const startProxy = async () => {
+    setIsRestarting(true)
+    try {
+      if (App.StartProxy) setIsProxyRunning(await App.StartProxy())
+      else if (App.RestartProxy) await App.RestartProxy()
+      await refreshProxySettings()
+      setIsLive(true)
+    } finally {
+      setTimeout(() => setIsRestarting(false), 500)
+    }
+  }
+
+  const stopProxy = async () => {
+    setIsRestarting(true)
+    try {
+      if (App.StopProxy) await App.StopProxy()
+      await refreshProxySettings()
+    } finally {
+      setTimeout(() => setIsRestarting(false), 500)
+    }
+  }
+
+  const exportHistory = () => {
+    downloadHAR(buildHAR(requests))
+  }
+
+  const generateCertificate = async () => {
+    setIsGeneratingCert(true)
+    try {
+      if (App.RegenerateCA) await App.RegenerateCA()
+    } finally {
+      setTimeout(() => setIsGeneratingCert(false), 650)
+    }
+  }
+
+  const totalBytes = requests.reduce((sum, req) => sum + (req.request_size || 0) + (req.size || 0), 0)
+  const successful = requests.filter(req => (req.status_code || 0) >= 200 && (req.status_code || 0) < 400).length
+  const avgLatency = requests.length
+    ? Math.round(requests.reduce((sum, req) => sum + (req.latency || 0), 0) / requests.length)
+    : 0
+
+  const statCards = [
+    { label: "Captured", value: requests.length.toLocaleString(), accent: "var(--accent)" },
+    { label: "Success", value: successful.toLocaleString(), accent: "var(--status-success)" },
+    { label: "Throughput", value: `${telemetry?.rps ?? 0}/s`, accent: "var(--status-info)" },
+    { label: "Avg Time", value: `${avgLatency}ms`, accent: "var(--status-warning)" },
+  ]
+
+  return (
+    <div className="h-full overflow-auto p-3">
+      <div className="grid h-full min-h-[720px] grid-cols-[minmax(420px,0.9fr)_minmax(540px,1.1fr)] gap-3 2xl:grid-cols-[520px_1fr]">
+        <CyberPanel title="Proxy Control" icon={<Power className="size-3.5" />} className="min-h-0">
+          <div className="flex h-full flex-col gap-5 p-5">
+            <div className="rounded-[14px] border border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel)] p-5 shadow-inner shadow-[rgba(0,240,255,0.04)]">
+              <div className="mb-5 flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--tokyo-cyan)]">Proxy Engine</div>
+                  <div className="mt-1 flex items-center gap-2 text-xl font-semibold text-[var(--tokyo-cyan)]">
+                    {isProxyRunning ? "Listening" : "Stopped"}
+                    <span className={`size-2 rounded-full ${isConnected && isProxyRunning ? "bg-[var(--status-success)]" : "bg-[var(--status-error)]"} shadow-[0_0_14px_currentColor]`} />
+                  </div>
+                </div>
+                <button
+                  className={`proxy-power-toggle ${isProxyRunning ? "is-on" : ""}`}
+                  onClick={() => isProxyRunning ? stopProxy() : startProxy()}
+                  aria-label="Toggle proxy listener"
+                >
+                  <span />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="proxy-detail-card">
+                  <Server className="size-4 text-[var(--accent)]" />
+                  <span>Host</span>
+                  <strong>{proxyHost}</strong>
+                </div>
+                <div className="proxy-detail-card">
+                  <Radio className="size-4 text-[var(--status-info)]" />
+                  <span>Port</span>
+                  <strong>{proxyPort}</strong>
+                </div>
+                <div className="proxy-detail-card">
+                  <Crosshair className="size-4 text-[var(--status-error)]" />
+                  <span>Intercept</span>
+                  <strong>{isInterceptEnabled ? "Enabled" : "Disabled"}</strong>
+                </div>
+                <div className="proxy-detail-card">
+                  <Activity className="size-4 text-[var(--status-success)]" />
+                  <span>Traffic</span>
+                  <strong>{formatBytes(totalBytes)}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {statCards.map((stat) => (
+                <div key={stat.label} className="stat-tile">
+                  <span>{stat.label}</span>
+                  <strong style={{ color: stat.accent }}>{stat.value}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Button className="premium-action" onClick={restartProxy} disabled={isRestarting}>
+                <RefreshCw className={`size-4 ${isRestarting ? "animate-spin" : ""}`} />
+                Restart Proxy
+              </Button>
+              <Button variant="outline" className="premium-action secondary" onClick={isProxyRunning ? stopProxy : startProxy} disabled={isRestarting}>
+                <Power className="size-4" />
+                {isProxyRunning ? "Stop Proxy" : "Start Proxy"}
+              </Button>
+              <Button variant="outline" className="premium-action secondary" onClick={clearHistory}>
+                <Trash2 className="size-4" />
+                Clear
+              </Button>
+              <Button variant="outline" className="premium-action secondary" onClick={exportHistory}>
+                <Download className="size-4" />
+                Export
+              </Button>
+              <Button variant="outline" className="premium-action secondary">
+                <Upload className="size-4" />
+                Import
+              </Button>
+              <Button variant="outline" className="premium-action secondary" onClick={generateCertificate} disabled={isGeneratingCert}>
+                <FileKey2 className="size-4" />
+                Generate Certificate
+              </Button>
+            </div>
+          </div>
+        </CyberPanel>
+
+        <CyberPanel title="Traffic Operations" icon={<ShieldCheck className="size-3.5" />} className="min-h-0">
+          <div className="grid h-full grid-rows-[auto_1fr] gap-3 p-4">
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                className={`ops-card ${isInterceptEnabled ? "is-danger" : ""}`}
+                onClick={() => setIsInterceptEnabled(!isInterceptEnabled)}
+              >
+                <Crosshair className="size-5" />
+                <span>Intercept State</span>
+                <strong>{isInterceptEnabled ? "Holding" : "Pass-through"}</strong>
+              </button>
+              <div className="ops-card">
+                <Wifi className="size-5" />
+                <span>Backend</span>
+                <strong>{isConnected ? "Online" : "Offline"}</strong>
+              </div>
+              <div className="ops-card">
+                <Activity className="size-5" />
+                <span>Duration</span>
+                <strong>{avgLatency}ms avg</strong>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-[12px] border border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel)]">
+              <div className="flex h-9 items-center border-b border-[var(--tokyo-border-cyan)] px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--tokyo-cyan)]">
+                Recent Traffic
+              </div>
+              <div className="h-[calc(100%-36px)] overflow-auto">
+                {requests.slice(-12).reverse().map((req) => (
+                  <div key={req._uid} className="recent-row">
+                    <span className={`method-badge method-${(req.method || "get").toLowerCase()}`}>{req.method || "GET"}</span>
+                    <span className="truncate font-mono text-[var(--tokyo-cyan)]">{req.host}{req.path}</span>
+                    <span className="ml-auto font-mono text-[var(--tokyo-cyan)]/70">{req.status_code || "-"}</span>
+                  </div>
+                ))}
+                {requests.length === 0 && (
+                  <div className="flex h-full min-h-[260px] items-center justify-center text-center text-xs text-[var(--tokyo-cyan)]/55">
+                    Waiting for traffic on {proxyHost}:{proxyPort}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </CyberPanel>
+      </div>
+    </div>
+  )
+}

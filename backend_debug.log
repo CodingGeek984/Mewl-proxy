@@ -11427,3 +11427,270 @@
 2026/03/23 19:01:06 [Wails] App started with Go Proxy Engine.
 2026/03/23 19:01:06 [Titus] Passive secrets scanner initialized
 2026/03/23 19:01:23 [Wails] Shutting down and restoring Windows Proxy...
+2026/07/04 13:31:37 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 13:31:37 Error starting Wails:Wails applications will not build without the correct build tags.
+2026/07/04 13:35:03 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 13:35:03 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 13:35:03 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 13:35:03 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 13:35:29 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 13:35:29 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 13:35:29 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 13:35:29 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 13:42:27 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 13:42:27 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 13:42:27 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 13:42:27 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 13:42:41 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 13:42:41 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 13:42:41 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 13:42:41 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 13:49:01 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 13:49:01 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 13:49:01 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 13:49:01 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 13:49:14 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 13:49:14 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 13:49:14 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 13:49:14 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 13:50:02 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 13:50:02 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 13:50:02 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 13:50:02 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 13:50:03 [Wails] App started with Go Proxy Engine.
+2026/07/04 13:50:03 [Titus] Passive secrets scanner initialized
+2026/07/04 23:01:42 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 23:01:42 Error starting Wails:Wails applications will not build without the correct build tags.
+2026/07/04 23:02:24 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 23:02:24 Error starting Wails:Wails applications will not build without the correct build tags.
+2026/07/04 23:02:36 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 23:02:36 Error starting Wails:Wails applications will not build without the correct build tags.
+2026/07/04 23:06:17 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 23:06:17 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 23:06:17 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 23:06:17 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 23:06:38 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 23:06:38 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 23:06:38 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 23:06:38 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 23:06:46 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 23:06:46 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 23:06:46 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 23:06:46 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 23:06:47 [Wails] App started with Go Proxy Engine.
+2026/07/04 23:06:47 [Titus] Passive secrets scanner initialized
+2026/07/04 23:14:50 [Hub] Received intercept_action: action=off, uid=, hasPayload=false
+2026/07/04 23:14:50 [Hub] Disabling intercept
+2026/07/04 23:14:50 [Hub] Control signal queued: INTERCEPT_OFF
+2026/07/04 23:14:50 [Hub] Setting breakpoints: request=false, response=false
+2026/07/04 23:14:50 [Hub] Setting breakpoints: request=false, response=false
+2026/07/04 23:41:05 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 23:41:05 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 23:41:05 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 23:41:05 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 23:41:27 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 23:41:27 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 23:41:27 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 23:41:27 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 23:41:36 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/04 23:41:36 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/04 23:41:36 Internal API & WS started on 127.0.0.1:8000
+2026/07/04 23:41:36 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/04 23:41:36 [Wails] App started with Go Proxy Engine.
+2026/07/04 23:41:37 [Titus] Passive secrets scanner initialized
+2026/07/05 00:20:59 suppressing panic for copyResponse error in test; copy error: write |1: broken pipe
+2026/07/05 00:40:45 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 00:40:45 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 00:40:45 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 00:40:45 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 00:41:00 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 00:41:00 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 00:41:00 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 00:41:00 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 00:41:06 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 00:41:06 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 00:41:06 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 00:41:06 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 00:41:06 [Wails] App started with Go Proxy Engine.
+2026/07/05 00:41:06 [Titus] Passive secrets scanner initialized
+2026/07/05 00:45:46 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 00:45:46 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 00:45:46 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 00:45:46 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 00:45:46 [Proxy] Error: listen tcp :8081: bind: address already in use
+2026/07/05 00:45:57 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 00:45:57 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 00:45:57 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 00:45:57 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 00:45:57 [Wails] App started with Go Proxy Engine.
+2026/07/05 00:45:58 [Titus] Passive secrets scanner initialized
+2026/07/05 02:11:14 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 02:11:14 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 02:11:14 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 02:11:14 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 02:11:30 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 02:11:30 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 02:11:30 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 02:11:30 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 02:11:36 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 02:11:36 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 02:11:36 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 02:11:36 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 02:11:37 [Wails] App started with Go Proxy Engine.
+2026/07/05 02:11:37 [Titus] Passive secrets scanner initialized
+2026/07/05 03:34:54 Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026/07/05 03:52:20 [Hub] Received intercept_action: action=on, uid=, hasPayload=false
+2026/07/05 03:52:20 [Hub] Enabling intercept
+2026/07/05 03:52:20 [Hub] Control signal queued: INTERCEPT_ON
+2026/07/05 03:52:52 [Proxy] Regenerating Root CA...
+2026/07/05 03:52:53 [Proxy] Root CA regenerated successfully.
+2026/07/05 12:57:24 [Hub] Received intercept_action: action=off, uid=, hasPayload=false
+2026/07/05 12:57:24 [Hub] Disabling intercept
+2026/07/05 12:57:24 [Hub] Control signal queued: INTERCEPT_OFF
+2026/07/05 12:57:24 [Hub] Setting breakpoints: request=false, response=false
+2026/07/05 12:57:24 [Hub] Setting breakpoints: request=false, response=false
+2026/07/05 12:57:25 [Hub] Setting breakpoints: request=true, response=false
+2026/07/05 12:57:27 [Hub] Setting breakpoints: request=false, response=false
+2026/07/05 15:26:43 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 15:26:43 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 15:26:43 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 15:26:43 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 15:27:14 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 15:27:14 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 15:27:14 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 15:27:14 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 15:27:25 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 15:27:25 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 15:27:25 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 15:27:25 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 15:27:25 [Wails] App started with Go Proxy Engine.
+2026/07/05 15:27:26 [Titus] Passive secrets scanner initialized
+2026/07/05 16:03:36 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 16:03:36 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 16:03:36 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 16:03:36 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 16:03:36 [Proxy] Error: listen tcp :8081: bind: address already in use
+2026/07/05 16:03:49 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 16:03:49 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 16:03:49 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 16:03:49 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 16:03:49 [Wails] App started with Go Proxy Engine.
+2026/07/05 16:03:49 [Titus] Passive secrets scanner initialized
+2026/07/05 19:46:29 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 19:46:29 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 19:46:29 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 19:46:29 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 19:46:29 [Proxy] Error: listen tcp :8081: bind: address already in use
+2026/07/05 19:46:41 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 19:46:41 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 19:46:41 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 19:46:41 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 19:46:41 [Wails] App started with Go Proxy Engine.
+2026/07/05 19:46:42 [Titus] Passive secrets scanner initialized
+2026/07/05 19:48:01 Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026/07/05 19:49:37 [Network] Advanced protocol vless requires xray-core/sing-box (not yet wired)
+2026/07/05 19:50:30 [Network] Advanced protocol vless requires xray-core/sing-box (not yet wired)
+2026/07/05 19:50:58 [Network] Advanced protocol vless requires xray-core/sing-box (not yet wired)
+2026/07/05 19:51:27 [Network] Advanced protocol vless requires xray-core/sing-box (not yet wired)
+2026/07/05 19:51:29 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 19:51:29 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 19:51:29 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 19:51:29 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 19:51:29 [Proxy] Error: listen tcp :8081: bind: address already in use
+2026/07/05 19:51:40 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/05 19:51:40 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/05 19:51:40 Internal API & WS started on 127.0.0.1:8000
+2026/07/05 19:51:40 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/05 19:51:41 [Wails] App started with Go Proxy Engine.
+2026/07/05 19:51:41 [Titus] Passive secrets scanner initialized
+2026/07/06 01:16:12 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:16:12 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:16:12 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:16:12 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:16:26 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:16:26 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:16:26 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:16:26 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:17:20 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:17:20 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:17:20 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:17:20 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:17:21 [Wails] App started with Go Proxy Engine.
+2026/07/06 01:17:21 [Titus] Passive secrets scanner initialized
+2026/07/06 01:33:59 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:33:59 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:33:59 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:33:59 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:33:59 [Proxy] Error: listen tcp :8081: bind: address already in use
+2026/07/06 01:34:12 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:34:12 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:34:12 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:34:12 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:34:13 [Wails] App started with Go Proxy Engine.
+2026/07/06 01:34:13 [Titus] Passive secrets scanner initialized
+2026/07/06 01:34:21 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:34:21 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:34:21 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:34:21 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:34:21 [Proxy] Error: listen tcp :8081: bind: address already in use
+2026/07/06 01:34:23 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:34:23 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:34:23 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:34:23 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:34:24 [Wails] App started with Go Proxy Engine.
+2026/07/06 01:34:24 [Titus] Passive secrets scanner initialized
+2026/07/06 01:34:33 [Scripting] Saved 0 custom scripts
+2026/07/06 01:34:33 [Scripting] Saved 0 custom scripts
+2026/07/06 01:37:04 [Wails] Shutting down and restoring Windows Proxy...
+2026/07/06 01:37:17 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:37:17 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:37:17 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:37:17 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:37:31 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:37:31 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:37:31 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:37:31 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:37:37 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:37:37 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:37:37 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:37:37 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:37:37 [Wails] App started with Go Proxy Engine.
+2026/07/06 01:37:37 [Titus] Passive secrets scanner initialized
+2026/07/06 01:38:55 Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026/07/06 01:40:21 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:40:21 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:40:21 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:40:21 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:40:21 [Proxy] Error: listen tcp :8081: bind: address already in use
+2026/07/06 01:40:28 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/06 01:40:28 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/06 01:40:28 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/06 01:40:28 Internal API & WS started on 127.0.0.1:8000
+2026/07/06 01:40:28 [Wails] App started with Go Proxy Engine.
+2026/07/06 01:40:29 [Titus] Passive secrets scanner initialized
+2026/07/06 01:42:55 [Scripting] Saved 0 custom scripts
+2026/07/06 01:42:55 [Scripting] Saved 0 custom scripts
+2026/07/06 02:38:56 [Scripting] Saved 0 custom scripts
+2026/07/06 02:38:56 [Scripting] Saved 0 custom scripts
+2026/07/06 14:24:37 [Scripting] Saved 0 custom scripts
+2026/07/06 14:24:37 [Scripting] Saved 0 custom scripts
+2026/07/06 14:40:59 [Scripting] Saved 0 custom scripts
+2026/07/06 14:40:59 [Scripting] Saved 0 custom scripts
+2026/07/07 00:44:54 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/07 00:44:54 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/07 00:44:54 Internal API & WS started on 127.0.0.1:8000
+2026/07/07 00:44:54 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/07 00:45:12 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/07 00:45:12 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/07 00:45:12 Internal API & WS started on 127.0.0.1:8000
+2026/07/07 00:45:12 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/07 00:45:21 modernc.org/sqlite database initialized successfully with WAL mode
+2026/07/07 00:45:21 [Proxy] Starting Go-based Proxy Engine on :8081
+2026/07/07 00:45:21 Internal API & WS started on 127.0.0.1:8000
+2026/07/07 00:45:21 [Network] Loaded proxy pool: 1 entries, mode=per_request, value=1
+2026/07/07 00:45:22 [Wails] App started with Go Proxy Engine.
+2026/07/07 00:45:22 [Titus] Passive secrets scanner initialized
+2026/07/07 00:47:06 [Scripting] Saved 0 custom scripts
+2026/07/07 00:47:06 [Scripting] Saved 0 custom scripts
+2026/07/07 01:06:22 [Scripting] Saved 0 custom scripts
+2026/07/07 01:06:22 [Scripting] Saved 0 custom scripts

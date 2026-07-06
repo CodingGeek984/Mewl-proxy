@@ -10,13 +10,13 @@ export const MonoInput = React.forwardRef<HTMLInputElement, MonoInputProps>(
     return (
       <div className="relative flex items-center w-full">
         {icon && (
-          <div className="absolute left-2.5 text-muted-foreground/50 pointer-events-none">
+          <div className="absolute left-2.5 text-[var(--tokyo-cyan)]/55 pointer-events-none">
             {icon}
           </div>
         )}
         <Input
           ref={ref}
-          className={`font-mono text-[11px] h-8 bg-muted/10 border-border/40 hover:border-border/60 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/40 transition-all ${icon ? "pl-8" : "pl-3"} ${className}`}
+          className={`font-mono text-[11px] h-8 bg-[var(--tokyo-panel-2)] border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] placeholder:text-[var(--tokyo-cyan)]/35 hover:border-[var(--tokyo-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--tokyo-magenta)] focus-visible:border-[var(--tokyo-magenta)] transition-all ${icon ? "pl-8" : "pl-3"} ${className}`}
           {...props}
         />
       </div>

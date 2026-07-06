@@ -16,6 +16,28 @@ export namespace backend {
 	        this.latency = source["latency"];
 	    }
 	}
+	export class CustomScript {
+	    id: string;
+	    name: string;
+	    description: string;
+	    code: string;
+	    enabled: boolean;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CustomScript(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.description = source["description"];
+	        this.code = source["code"];
+	        this.enabled = source["enabled"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class FuzzPayloadConfig {
 	    type: string;
 	    simpleText: string;

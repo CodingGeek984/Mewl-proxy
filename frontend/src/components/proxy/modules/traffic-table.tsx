@@ -112,26 +112,26 @@ export function HeaderCell({ col, width, sortField, sortAsc, onSort, onDragStart
         <RContextMenu>
             <RContextMenuTrigger asChild>
                 <div style={{ width, minWidth: col.minWidth, maxWidth: width, flexShrink: 0, position: "relative" }}
-                    className={`flex items-center border-r border-white/5 last:border-r-0 transition-colors ${isOver ? "bg-accent/10" : ""}`}>
+                    className={`flex items-center border-r border-[var(--tokyo-border-cyan)] last:border-r-0 transition-colors ${isOver ? "bg-[var(--tokyo-magenta-soft)]" : ""}`}>
                     <div draggable onDragStart={onDragStart} onDragOver={onDragOver} onDrop={onDrop} onDragEnd={onDragEnd}
                         onClick={() => onSort(col.sortKey)}
-                        className={`flex items-center px-2 py-1.5 h-full text-[10px] font-sans uppercase select-none truncate cursor-pointer flex-1 transition-all duration-200 ${isSorted ? "text-accent" : "text-foreground-muted/40 hover:text-foreground/80 hover:bg-white/[0.02]"}`}>
+                        className={`flex items-center px-2 py-1.5 h-full text-[10px] font-sans uppercase select-none truncate cursor-pointer flex-1 transition-all duration-200 ${isSorted ? "text-[var(--tokyo-magenta)]" : "text-[var(--tokyo-cyan)]/55 hover:text-[var(--tokyo-cyan)] hover:bg-[var(--tokyo-cyan-soft)]"}`}>
                         <span className="truncate flex-1">{col.label}</span>
-                        {isSorted && (sortAsc ? <ArrowUp className="size-3.5 ml-1 shrink-0 text-accent/80" /> : <ArrowDown className="size-3.5 ml-1 shrink-0 text-accent/80" />)}
+                        {isSorted && (sortAsc ? <ArrowUp className="size-3.5 ml-1 shrink-0 text-[var(--tokyo-magenta)]" /> : <ArrowDown className="size-3.5 ml-1 shrink-0 text-[var(--tokyo-magenta)]" />)}
                     </div>
                     {!disableResize && (
                     <div
                         onMouseDown={onResizeStart}
                         className="absolute right-[-4px] top-0 bottom-0 w-8 cursor-col-resize z-50 group flex items-center justify-center -mr-4"
                     >
-                        <div className="w-[1px] h-3 bg-white/5 mb-1 group-hover:bg-accent/50 group-hover:h-full transition-all duration-300" />
+                        <div className="w-[1px] h-3 bg-[var(--tokyo-border-cyan)] mb-1 group-hover:bg-[var(--tokyo-magenta)] group-hover:h-full transition-all duration-300" />
                     </div>
                     )}
                 </div>
             </RContextMenuTrigger>
-            <RContextMenuContent className="text-xs bg-background-elevated border-border/40 shadow-2xl backdrop-blur-xl">
-                <RContextMenuItem className="text-xs focus:bg-accent/20" onClick={() => onHideColumn(col.key)}>Hide Column: {col.label}</RContextMenuItem>
-                <RContextMenuItem className="text-xs focus:bg-accent/20" onClick={() => onCopyColumnData(col.key)}>Copy Column Data</RContextMenuItem>
+            <RContextMenuContent className="text-xs bg-[var(--tokyo-panel)]/85 border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] shadow-[0_0_20px_rgba(0,240,255,0.1)] backdrop-blur-xl">
+                <RContextMenuItem className="text-xs focus:bg-[var(--tokyo-magenta-soft)] focus:text-[var(--tokyo-magenta)] focus:border focus:border-[var(--tokyo-border-magenta)]" onClick={() => onHideColumn(col.key)}>Hide Column: {col.label}</RContextMenuItem>
+                <RContextMenuItem className="text-xs focus:bg-[var(--tokyo-magenta-soft)] focus:text-[var(--tokyo-magenta)] focus:border focus:border-[var(--tokyo-border-magenta)]" onClick={() => onCopyColumnData(col.key)}>Copy Column Data</RContextMenuItem>
             </RContextMenuContent>
         </RContextMenu>
     )
@@ -147,7 +147,7 @@ export const VirtualRow = memo(function VirtualRow({
         <div
             data-uid={req._uid}
             style={{ position: "absolute", transform: `translateY(${top}px)`, top: 0, left: 0, right: 0, height: 28, display: "flex", alignItems: "center", contain: "strict", backgroundColor: rowColor }}
-            className={`cursor-pointer border-b border-white/[0.04] transition-all duration-200 font-sans text-[11px] select-none group/row ${isSelected ? "bg-accent/15 text-foreground shadow-[inset_2px_0_0_0_#5E6AD2]" : index % 2 !== 0 ? "bg-white/[0.02] hover:bg-white/[0.05] text-foreground/70" : "bg-transparent hover:bg-white/[0.05] text-foreground/70"} ${isMatched && !isSelected ? "bg-accent/5 shadow-[inset_1px_0_0_0_rgba(94,106,210,0.2)]" : ""}`}
+            className={`cursor-pointer border-b border-[var(--tokyo-border-cyan)] transition-all duration-150 font-sans text-[11px] select-none group/row ${isSelected ? "bg-[var(--tokyo-magenta-soft)] text-[var(--tokyo-cyan)] shadow-[inset_2px_0_0_0_var(--tokyo-magenta),0_0_18px_rgba(255,0,170,0.18)]" : index % 2 !== 0 ? "bg-[var(--tokyo-panel-2)] hover:bg-[var(--tokyo-cyan-soft)] text-[var(--tokyo-cyan)]/82" : "bg-[var(--tokyo-panel)] hover:bg-[var(--tokyo-cyan-soft)] text-[var(--tokyo-cyan)]/82"} ${isMatched && !isSelected ? "bg-[var(--tokyo-magenta-soft)] shadow-[inset_1px_0_0_0_var(--tokyo-magenta)]" : ""}`}
         >
             {activeCols.map(col => {
                 const w = colWidths[col.key] ?? col.defaultWidth
@@ -177,18 +177,18 @@ export function ColSettingsPanel({ visible, order, onVisibleChange, onOrderChang
         onOrderChange(next); setDragging(null); setOver(null)
     }
     return (
-        <div className="w-56 pb-2 bg-popover rounded-md border shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20">
+        <div className="w-56 pb-2 bg-[var(--tokyo-panel)]/85 backdrop-blur-xl rounded-md border border-[var(--tokyo-border-cyan)] text-[var(--tokyo-cyan)] shadow-[0_0_20px_rgba(0,240,255,0.1)] overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--tokyo-border-cyan)] bg-transparent">
                 <span className="text-xs font-semibold">Columns</span>
-                <button onClick={onReset} className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1.5 bg-zinc-800/40 hover:bg-zinc-700/60 px-2 py-0.5 rounded border border-white/5 transition-colors"><RotateCcw className="size-2.5" />Reset</button>
+                <button onClick={onReset} className="text-[10px] text-[var(--tokyo-cyan)]/70 hover:text-[var(--tokyo-magenta)] flex items-center gap-1.5 bg-[var(--tokyo-panel)] hover:bg-[var(--tokyo-magenta-soft)] px-2 py-0.5 rounded border border-[var(--tokyo-border-cyan)] transition-colors"><RotateCcw className="size-2.5" />Reset</button>
             </div>
             <div className="max-h-80 overflow-y-auto pt-1">
                 {orderedCols.map(col => (
                     <div key={col.key} draggable
                         onDragStart={() => setDragging(col.key)} onDragOver={e => { e.preventDefault(); setOver(col.key) }}
                         onDrop={() => onDrop(col.key)} onDragEnd={() => { setDragging(null); setOver(null) }}
-                        className={`flex items-center gap-2 px-3 py-1 cursor-grab hover:bg-muted/50 select-none ${over === col.key && dragging !== col.key ? "bg-accent/50" : ""}`}>
-                        <GripVertical className="size-3 text-muted-foreground/30" />
+                        className={`flex items-center gap-2 px-3 py-1 cursor-grab hover:bg-[var(--tokyo-cyan-soft)] select-none ${over === col.key && dragging !== col.key ? "bg-[var(--tokyo-magenta-soft)]" : ""}`}>
+                        <GripVertical className="size-3 text-[var(--tokyo-cyan)]/35" />
                         <Switch checked={visible.includes(col.key)} onCheckedChange={() => toggle(col.key)} className="scale-[0.65]" />
                         <span className="text-[11px] flex-1 truncate">{col.label}</span>
                     </div>
@@ -363,7 +363,7 @@ export function TrafficTable({
 
     return (
         <>
-            <div className="shrink-0 border-b bg-muted/10 w-full overflow-hidden" style={{ height: 28 }}>
+            <div className="shrink-0 border-b border-[var(--tokyo-border-cyan)] bg-[var(--tokyo-panel-3)] w-full overflow-hidden" style={{ height: 30 }}>
                 <div className="flex h-full w-full">
                     {activeCols.map((col) => (
                         <HeaderCell key={col.key} col={col} width={getWidth(col)} sortField={sortField} sortAsc={sortAsc} onSort={toggleSort}

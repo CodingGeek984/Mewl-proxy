@@ -93,7 +93,7 @@ export const useProxyStore = create<WebSocketContextType>((set) => ({
     setSearchRaw: () => { },
     searchActive: "",
     setSearchActive: () => { },
-    searchCfg: { scopes: ["all"], regex: false, negative: false },
+    searchCfg: { locations: ["all"], interactionScopes: ["all"], regex: false, negative: false },
     setSearchCfg: () => { },
     filterCfg: {
         enabled: false, reqHasResponse: false, reqHasParams: false,
@@ -176,7 +176,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         
         // Ensure proxy_scope is synchronized to backend immediately on mount
         const savedScope = localStorage.getItem("proxy_scope")
-        const scopeItems: string[] = savedScope ? JSON.parse(savedScope) : ["*.example.com", "127.0.0.1"]
+        const scopeItems: string[] = savedScope ? JSON.parse(savedScope) : [".*"]
         const syncRules = scopeItems.map((host, i) => ({
             id: i + 1, enabled: true, type: "include", protocol: "Any", host: host, path: ".*"
         }))
